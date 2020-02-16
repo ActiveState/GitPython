@@ -16,6 +16,7 @@ import tempfile
 import textwrap
 import time
 import unittest
+import venv
 
 from git.compat import string_types, is_win
 from git.util import rmtree, cwd
@@ -36,7 +37,8 @@ GIT_DAEMON_PORT = os.environ.get("GIT_PYTHON_TEST_GIT_DAEMON_PORT", "19418")
 __all__ = (
     'fixture_path', 'fixture', 'StringProcessAdapter',
     'with_rw_directory', 'with_rw_repo', 'with_rw_and_rw_remote_repo',
-    'TestBase', 'TestCase',
+    'TestBase', 'VirtualEnvironment',
+    'TestCase',
     'SkipTest', 'skipIf',
     'GIT_REPO', 'GIT_DAEMON_PORT'
 )
@@ -83,13 +85,13 @@ def with_rw_directory(func):
     test succeeds, but leave it otherwise to aid additional debugging"""
 
     @wraps(func)
-    def wrapper(self):
+    def wrapper(self, *args, **kwargs):
         path = tempfile.mktemp(prefix=func.__name__)
         os.mkdir(path)
         keep = False
         try:
             try:
-                return func(self, path)
+                return func(self, path, *args, **kwargs)
             except Exception:
                 log.info("Test %s.%s failed, output is at %r\n",
                          type(self).__name__, func.__name__, path)
@@ -379,3 +381,46 @@ class TestBase(TestCase):
         with open(abs_path, "w") as fp:
             fp.write(data)
         return abs_path
+
+
+class VirtualEnvironment:
+    """A newly created Python virtual environment for use in a test."""
+
+    __slots__ = ("_env_dir",)
+
+    def __init__(self, env_dir, with_pip):
+        if os.name == "nt":
+            self._env_dir = osp.realpath(env_dir)
+            venv.create(self.env_dir, symlinks=False, with_pip=with_pip)
+        else:
+            self._env_dir = env_dir
+            venv.create(self.env_dir, symlinks=True, with_pip=with_pip)
+
+    @property
+    def env_dir(self):
+        """The top-level directory of the environment."""
+        return self._env_dir
+
+    @property
+    def python(self):
+        """Path to the Python executable in the environment."""
+        return self._executable("python")
+
+    @property
+    def pip(self):
+        """Path to the pip executable in the environment, or RuntimeError if absent."""
+        return self._executable("pip")
+
+    @property
+    def sources(self):
+        """Path to a src directory in the environment, which may not exist yet."""
+        return os.path.join(self.env_dir, "src")
+
+    def _executable(self, basename):
+        if os.name == "nt":
+            path = osp.join(self.env_dir, "Scripts", basename + ".exe")
+        else:
+            path = osp.join(self.env_dir, "bin", basename)
+        if osp.isfile(path) or osp.islink(path):
+            return path
+        raise RuntimeError("no regular file or symlink " + str(path))
