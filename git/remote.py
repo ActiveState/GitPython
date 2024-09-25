@@ -833,14 +833,21 @@ class Remote(LazyMixin, Iterable):
         if not allow_unsafe_options:
             Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_fetch_options)
 
-        proc = self.repo.git.fetch(self, *args, as_process=True, with_stdout=False,
+        proc = self.repo.git.fetch("--", self, *args, as_process=True, with_stdout=False,
                                    universal_newlines=True, v=True, **kwargs)
         res = self._get_fetch_info_from_stderr(proc, progress)
         if hasattr(self.repo.odb, 'update_cache'):
             self.repo.odb.update_cache()
         return res
 
-    def pull(self, refspec=None, progress=None, **kwargs):
+    def pull(
+            self,
+            refspec=None,
+            progress=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         """Pull changes from the given branch, being the same as a fetch followed
         by a merge of branch with your local branch.
 
@@ -852,14 +859,28 @@ class Remote(LazyMixin, Iterable):
             # No argument refspec, then ensure the repo's config has a fetch refspec.
             self._assert_refspec()
         kwargs = add_progress(kwargs, self.repo.git, progress)
-        proc = self.repo.git.pull(self, refspec, with_stdout=False, as_process=True,
+
+        refspec = Git._unpack_args(refspec or [])
+        if not allow_unsafe_protocols:
+            for ref in refspec:
+                Git.check_unsafe_protocols(ref)
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_pull_options)
+
+        proc = self.repo.git.pull("--", self, refspec, with_stdout=False, as_process=True,
                                   universal_newlines=True, v=True, **kwargs)
         res = self._get_fetch_info_from_stderr(proc, progress)
         if hasattr(self.repo.odb, 'update_cache'):
             self.repo.odb.update_cache()
         return res
 
-    def push(self, refspec=None, progress=None, **kwargs):
+    def push(
+            self,
+            refspec=None,
+            progress=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs):
         """Push changes from source branch in refspec to target branch in refspec.
 
         :param refspec: see 'fetch' method
@@ -887,7 +908,15 @@ class Remote(LazyMixin, Iterable):
             If the operation fails completely, the length of the returned IterableList will
             be null."""
         kwargs = add_progress(kwargs, self.repo.git, progress)
-        proc = self.repo.git.push(self, refspec, porcelain=True, as_process=True,
+
+        refspec = Git._unpack_args(refspec or [])
+        if not allow_unsafe_protocols:
+            for ref in refspec:
+                Git.check_unsafe_protocols(ref)
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_push_options)
+
+        proc = self.repo.git.push("--", self, refspec, porcelain=True, as_process=True,
                                   universal_newlines=True, **kwargs)
         return self._get_push_info(proc, progress)
 
