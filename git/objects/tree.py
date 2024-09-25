@@ -13,10 +13,7 @@ from .blob import Blob
 from .submodule.base import Submodule
 from git.compat import string_types
 
-from .fun import (
-    tree_entries_from_data,
-    tree_to_stream
-)
+from .fun import tree_entries_from_data, tree_to_stream
 
 from git.compat import PY3
 
@@ -74,12 +71,12 @@ def merge_sort(a, cmp):
 
 
 class TreeModifier(object):
-
     """A utility class providing methods to alter the underlying cache in a list-like fashion.
 
     Once all adjustments are complete, the _cache, which really is a reference to
     the cache of a tree, will be sorted. Assuring it will be in a serializable state"""
-    __slots__ = '_cache'
+
+    __slots__ = "_cache"
 
     def __init__(self, cache):
         self._cache = cache
@@ -93,7 +90,7 @@ class TreeModifier(object):
         # END for each item in cache
         return -1
 
-    #{ Interface
+    # { Interface
     def set_done(self):
         """Call this method once you are done modifying the tree information.
         It may be called several times, but be aware that each call will cause
@@ -101,9 +98,10 @@ class TreeModifier(object):
         :return self:"""
         merge_sort(self._cache, git_cmp)
         return self
-    #} END interface
 
-    #{ Mutators
+    # } END interface
+
+    # { Mutators
     def add(self, sha, mode, name, force=False):
         """Add the given item to the tree. If an item with the given name already
         exists, nothing will be done, but a ValueError will be raised if the
@@ -115,7 +113,7 @@ class TreeModifier(object):
         :param force: If True, an item with your name and information will overwrite
             any existing item with the same name, no matter which information it has
         :return: self"""
-        if '/' in name:
+        if "/" in name:
             raise ValueError("Name must not contain '/' characters")
         if (mode >> 12) not in Tree._map_id_to_type:
             raise ValueError("Invalid object type according to mode %o" % mode)
@@ -148,13 +146,12 @@ class TreeModifier(object):
         """Deletes an item with the given name if it exists"""
         index = self._index_by_name(name)
         if index > -1:
-            del(self._cache[index])
+            del self._cache[index]
 
-    #} END mutators
+    # } END mutators
 
 
 class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
-
     """Tree objects represent an ordered list of Blobs and other Trees.
 
     ``Tree as a list``::
@@ -170,7 +167,7 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
     __slots__ = "_cache"
 
     # actual integer ids for comparison
-    commit_id = 0o16     # equals stat.S_IFDIR | stat.S_IFLNK - a directory link
+    commit_id = 0o16  # equals stat.S_IFDIR | stat.S_IFLNK - a directory link
     blob_id = 0o10
     symlink_id = 0o12
     tree_id = 0o04
@@ -178,7 +175,7 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
     _map_id_to_type = {
         commit_id: Submodule,
         blob_id: Blob,
-        symlink_id: Blob
+        symlink_id: Blob,
         # tree id added once Tree is defined
     }
 
@@ -208,7 +205,9 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
             try:
                 yield self._map_id_to_type[mode >> 12](self.repo, binsha, mode, path)
             except KeyError:
-                raise TypeError("Unknown mode %o found in tree data for path '%s'" % (mode, path))
+                raise TypeError(
+                    "Unknown mode %o found in tree data for path '%s'" % (mode, path)
+                )
         # END for each item
 
     def join(self, file):
@@ -217,13 +216,13 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
 
         :raise KeyError: if given file or tree does not exist in tree"""
         msg = "Blob or Tree named %r not found"
-        if '/' in file:
+        if "/" in file:
             tree = self
             item = self
-            tokens = file.split('/')
+            tokens = file.split("/")
             for i, token in enumerate(tokens):
                 item = tree[token]
-                if item.type == 'tree':
+                if item.type == "tree":
                     tree = item
                 else:
                     # safety assertion - blobs are at the end of the path
@@ -237,9 +236,10 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
             return item
         else:
             for info in self._cache:
-                if info[2] == file:     # [2] == name
-                    return self._map_id_to_type[info[1] >> 12](self.repo, info[0], info[1],
-                                                               join_path(self.path, info[2]))
+                if info[2] == file:  # [2] == name
+                    return self._map_id_to_type[info[1] >> 12](
+                        self.repo, info[0], info[1], join_path(self.path, info[2])
+                    )
             # END for each obj
             raise KeyError(msg % file)
         # END handle long paths
@@ -271,12 +271,20 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
             See the ``TreeModifier`` for more information on how to alter the cache"""
         return TreeModifier(self._cache)
 
-    def traverse(self, predicate=lambda i, d: True,
-                 prune=lambda i, d: False, depth=-1, branch_first=True,
-                 visit_once=False, ignore_self=1):
+    def traverse(
+        self,
+        predicate=lambda i, d: True,
+        prune=lambda i, d: False,
+        depth=-1,
+        branch_first=True,
+        visit_once=False,
+        ignore_self=1,
+    ):
         """For documentation, see util.Traversable.traverse
         Trees are set to visit_once = False to gain more performance in the traversal"""
-        return super(Tree, self).traverse(predicate, prune, depth, branch_first, visit_once, ignore_self)
+        return super(Tree, self).traverse(
+            predicate, prune, depth, branch_first, visit_once, ignore_self
+        )
 
     # List protocol
     def __getslice__(self, i, j):
@@ -291,7 +299,9 @@ class Tree(IndexObject, diff.Diffable, util.Traversable, util.Serializable):
     def __getitem__(self, item):
         if isinstance(item, int):
             info = self._cache[item]
-            return self._map_id_to_type[info[1] >> 12](self.repo, info[0], info[1], join_path(self.path, info[2]))
+            return self._map_id_to_type[info[1] >> 12](
+                self.repo, info[0], info[1], join_path(self.path, info[2])
+            )
 
         if isinstance(item, string_types):
             # compatibility

@@ -1,0 +1,329 @@
+GitPython on  BE-3955-cve-2022-24439 [$?]
+❯ docker run -it -v (pwd):/mnt/work python:2.7.18 bash
+root@dc38f6142660:/# pip install "tox<4"
+DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. A future version of pip will drop support for Python 2.7. More details about Python 2 support in pip, can be found at https://pip.pypa.io/en/latest/development/release-process/#python-2-support
+Collecting tox<4
+  Downloading tox-3.28.0-py2.py3-none-any.whl (86 kB)
+     |████████████████████████████████| 86 kB 1.4 MB/s
+Collecting packaging>=14
+  Downloading packaging-20.9-py2.py3-none-any.whl (40 kB)
+     |████████████████████████████████| 40 kB 7.1 MB/s
+Requirement already satisfied: filelock>=3.0.0 in /usr/local/lib/python2.7/site-packages (from tox<4) (3.0.12)
+Requirement already satisfied: six>=1.14.0 in /usr/local/lib/python2.7/site-packages (from tox<4) (1.14.0)
+Requirement already satisfied: virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0 in /usr/local/lib/python2.7/site-packages (from tox<4) (20.0.18)
+Collecting pluggy>=0.12.0
+  Downloading pluggy-0.13.1-py2.py3-none-any.whl (18 kB)
+Requirement already satisfied: importlib-metadata>=0.12; python_version < "3.8" in /usr/local/lib/python2.7/site-packages (from tox<4) (1.6.0)
+Collecting toml>=0.10.2; python_version <= "3.6"
+  Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
+Collecting py>=1.4.17
+  Downloading py-1.11.0-py2.py3-none-any.whl (98 kB)
+     |████████████████████████████████| 98 kB 8.8 MB/s
+Collecting pyparsing>=2.0.2
+  Downloading pyparsing-2.4.7-py2.py3-none-any.whl (67 kB)
+     |████████████████████████████████| 67 kB 11.5 MB/s
+Requirement already satisfied: distlib<1,>=0.3.0 in /usr/local/lib/python2.7/site-packages (from virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (0.3.0)
+Requirement already satisfied: pathlib2<3,>=2.3.3; python_version < "3.4" and sys_platform != "win32" in /usr/local/lib/python2.7/site-packages (from virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (2.3.5)
+Requirement already satisfied: contextlib2<1,>=0.6.0; python_version < "3.3" in /usr/local/lib/python2.7/site-packages (from virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (0.6.0.post1)
+Requirement already satisfied: importlib-resources<2,>=1.0; python_version < "3.7" in /usr/local/lib/python2.7/site-packages (from virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (1.4.0)
+Requirement already satisfied: appdirs<2,>=1.4.3 in /usr/local/lib/python2.7/site-packages (from virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (1.4.3)
+Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python2.7/site-packages (from importlib-metadata>=0.12; python_version < "3.8"->tox<4) (1.2.0)
+Requirement already satisfied: configparser>=3.5; python_version < "3" in /usr/local/lib/python2.7/site-packages (from importlib-metadata>=0.12; python_version < "3.8"->tox<4) (4.0.2)
+Requirement already satisfied: scandir; python_version < "3.5" in /usr/local/lib/python2.7/site-packages (from pathlib2<3,>=2.3.3; python_version < "3.4" and sys_platform != "win32"->virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (1.10.0)
+Requirement already satisfied: singledispatch; python_version < "3.4" in /usr/local/lib/python2.7/site-packages (from importlib-resources<2,>=1.0; python_version < "3.7"->virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (3.4.0.3)
+Requirement already satisfied: typing; python_version < "3.5" in /usr/local/lib/python2.7/site-packages (from importlib-resources<2,>=1.0; python_version < "3.7"->virtualenv!=20.0.0,!=20.0.1,!=20.0.2,!=20.0.3,!=20.0.4,!=20.0.5,!=20.0.6,!=20.0.7,>=16.0.0->tox<4) (3.7.4.1)
+Installing collected packages: pyparsing, packaging, pluggy, toml, py, tox
+Successfully installed packaging-20.9 pluggy-0.13.1 py-1.11.0 pyparsing-2.4.7 toml-0.10.2 tox-3.28.0
+WARNING: You are using pip version 20.0.2; however, version 20.3.4 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+root@dc38f6142660:/# git config --global user.email ci@gitpython.org
+root@dc38f6142660:/# git config --global user.name "GitPython CI User"
+root@dc38f6142660:/# tox -e py27
+ERROR: tox config file (either pyproject.toml, tox.ini, setup.cfg) not found
+root@dc38f6142660:/# cd /mnt/work/
+root@dc38f6142660:/mnt/work# cd /mnt/work
+root@dc38f6142660:/mnt/work# rm -rf .tox
+root@dc38f6142660:/mnt/work# tox -e py27
+GLOB sdist-make: /mnt/work/setup.py
+py27 create: /mnt/work/.tox/py27
+py27 installdeps: -r/mnt/work/requirements.txt, -r/mnt/work/test-requirements.txt
+py27 inst: /mnt/work/.tox/.tmp/package/1/GitPython-2.1.15.zip
+py27 installed: DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. A future version of pip will drop support for Python 2.7. More details about Python 2 support in pip, can be found at https://pip.pypa.io/en/latest/development/release-process/#python-2-support,configparser==4.0.2,contextlib2==0.6.0.post1,coverage==5.5,ddt==1.6.0,distlib==0.3.8,enum34==1.1.10,filelock==3.2.1,flake8==3.9.2,funcsigs==1.0.2,functools32==3.2.3.post2,gitdb2==2.0.6,GitPython==2.1.15,importlib-metadata==2.1.3,importlib-resources==3.3.1,mccabe==0.6.1,mock==3.0.5,nose==1.3.7,packaging==20.9,pathlib2==2.3.7.post1,platformdirs==2.0.2,pluggy==0.13.1,py==1.11.0,pycodestyle==2.7.0,pyflakes==2.3.1,pyparsing==2.4.7,scandir==1.10.0,singledispatch==3.7.0,six==1.16.0,smmap==3.0.5,smmap2==3.0.1,toml==0.10.2,tox==3.28.0,typing==3.10.0.0,virtualenv==20.15.1,zipp==1.2.0
+py27 run-test-pre: PYTHONHASHSEED='2248876707'
+py27 run-test: commands[0] | nosetests
+Iterated 1912 Commits in 150.353966951 [s] ( 12.716658 commits/s )
+.Serialized 2454 and deserialized 1227 commits in 150.787314 s ( (16.274579, 8.137289) commits / s
+Serialized 5000 commits to loose objects in 0.372449 s ( 13424.651045 commits / s )
+.Traversed 1911 Commits in 149.267437935 [s] ( 12.802524 commits/s )
+.Traversed 161 Trees and a total of 11863 uncached objects in 224.727527142 [s] ( 52.788371 objs/s )
+.<class 'git.db.GitCmdObjectDB'>: Retrieved 1911 commits from ObjectStore in 150.17 s ( 12.725574 commits / s )
+<class 'git.db.GitCmdObjectDB'>: Retrieved 296904 objects from 1911 commits in 1.68453 s ( 176253.414665 objects / s )
+<class 'git.db.GitCmdObjectDB'>: Retrieved 15061 blob (162266 KiB) and their data in 0.548107 s ( 27478.203991 blobs / s, 296047.954901 KiB / s )
+<class 'gitdb.db.git.GitDB'>: Retrieved 1911 commits from ObjectStore in 0.0760839 s ( 25117.009467 commits / s )
+<class 'gitdb.db.git.GitDB'>: Retrieved 296904 objects from 1911 commits in 2.7054 s ( 109744.829209 objects / s )
+<class 'gitdb.db.git.GitDB'>: Retrieved 15061 blob (162266 KiB) and their data in 1.57216 s ( 9579.820989 blobs / s, 103212.219153 KiB / s )
+Iterate Commits: 150.170044 s vs 0.076084 s, pure is 0.000507 times slower
+Iterate Blobs: 1.684529 s vs 2.705403 s, pure is 1.606029 times slower
+Retrieve Blob Data: 0.548107 s vs 1.572159 s, pure is 2.868342 times slower
+.Creating  data ...
+Done (in 0.081439 s)
+Added 10000 KiB (filesize = 3458 KiB) of  data to loose odb in 0.080718 s ( 123888.042156 Write KiB / s)
+Read 10000 KiB of  data at once from loose odb in 0.029456 s ( 339490.558249 Read KiB / s)
+Read 10000 KiB of  data in 512 KiB chunks from loose odb in 0.028449 s ( 351505.480876 Read KiB / s)
+Added 10000 KiB (filesize = 3458 KiB) of  data to using git-hash-object in 0.110427 s ( 90557.642649 Write KiB / s)
+Git-Python is 26.903645 % faster than git when adding big  files                                                     Read 10000 KiB of  data at once using git-cat-file in 75.232747 s ( 132.920841 Read KiB / s)
+Git-Python is 99.960847 % faster than git when reading big files
+Read 10000 KiB of  data in 512 KiB chunks from git-cat-file in 0.027704 s ( 360958.700161 Read KiB / s)
+Git-Python is -2.689352 % faster than git when reading big  files in chunks
+Creating random  data ...
+Done (in 0.884554 s)
+Added 10000 KiB (filesize = 8220 KiB) of random  data to loose odb in 0.227257 s ( 44003.042431 Write KiB / s)
+Read 10000 KiB of random  data at once from loose odb in 0.048357 s ( 206795.251055 Read KiB / s)
+Read 10000 KiB of random  data in 512 KiB chunks from loose odb in 0.049814 s ( 200746.835140 Read KiB / s)
+Added 10000 KiB (filesize = 8220 KiB) of random  data to using git-hash-object in 0.259930 s ( 38471.911761 Write KiB / s)
+Git-Python is 12.569882 % faster than git when adding big random  files
+Read 10000 KiB of random  data at once using git-cat-file in 0.056953 s ( 175582.784590 Read KiB / s)
+Git-Python is 15.093415 % faster than git when reading big random files
+Read 10000 KiB of random  data in 512 KiB chunks from git-cat-file in 0.054024 s ( 185102.981999 Read KiB / s)
+Git-Python is 7.792827 % faster than git when reading big random  files in chunks
+........................................S.........................FE.............................................................................................................................................S......................................................E.............F....F...................
+......................../mnt/work/git/test/test_repo.py:753: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+  num_test_untracked += join_path_native(base, utfile) in files
+F...11
+
+                                                                                .^[^[zt^[^[^[
+                                                                                                                                                                                                                                                                                                                             ........EE..EE..S....FSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.......
+    ======================================================================
+    ERROR: test_references_and_objects (git.test.test_docs.Tutorials)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 92, in wrapper
+        return func(self, path)
+    File "/mnt/work/git/test/test_docs.py", line 395, in test_references_and_objects
+        origin.pull()
+    File "/mnt/work/git/remote.py", line 864, in pull
+        refspec = Git._unpack_args(refspec or [])
+    AttributeError: type object 'Git' has no attribute '_unpack_args'
+    -------------------- >> begin captured stdout << ---------------------
+    e61d27ba9930b596a1c874251e594c95bc3b167a
+    50a985844ce6b3f670ad9a1d94cd26748987439e
+    85cc74fdfee7b7ac684d15a5840af384ea9bc3b7
+    710010f1fe0311afd9823e319ff958827a419964
+    399a207e69d477d0fe8589b94c90c7ecd69ae6d3
+    20436bbc49dfef2c290003cc55b54a38aac9ff87
+    e21f534537b22a58eea2d3d579afd0bcb6edf72a
+    5840e4472bf1d458e74f789d87119416c3406a4c
+    879dcbc91ea7d8dab41479d4e47c157a1ed898ae
+    38c535ba5efda20769278c23aa7792ca01d6c789
+    d7e18420b32362cc0f10b66b317f92ee9c7d7d8c
+    64b00fe8bde32f43ae99327a635ce9412fb52ebc
+    f7205c5a349ca9916f33f8117e5e66b6bcf653db
+
+    --------------------- >> end captured stdout << ----------------------
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['git', 'clone', '--branch=master', '-v', '--', '/mnt/work/git/ext/gitdb/gitdb/ext/smmap', '/tmp/test_references_and_objectsKIWD69/repo'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['git', 'clone', '--branch=master', '-v', '--', '/mnt/work/git/ext/gitdb/gitdb/ext/smmap', '/tmp/test_references_and_objectsKIWD69/repo'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['git', 'cat-file', '--batch-check'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['git', 'branch', '-m', 'master', 'new_name'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'branch', '-m', 'new_name', 'master'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'cat-file', '--batch'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['git', 'tag', '-d', 'smmap2-v3.0.0'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'tag', 'my_tag', 'HEAD'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'branch', '-d', 'new'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'tag', '-m', 'my message', 'my_new_tag', 'HEAD'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'tag', '-d', 'my_new_tag'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'rev-list', '--max-count=50', 'master', '--'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'rev-list', '--max-count=10', '--skip=20', 'master', '--'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'rm', '--cached', '--', 'LICENSE'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'read-tree', '--index-output=/tmp/test_references_and_objectsKIWD69/repo/.git/JFh0J8', 'HEAD~1'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'merge-base', 'HEAD~10', 'HEAD'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'read-tree', '--reset', '--aggressive', '--index-output=/tmp/test_references_and_objectsKIWD69/repo/.git/SilWs2', 'HEAD~10', 'HEAD', '810ae3ad3f94a6a1b54231f88d13b7e071d1278c'], cwd=/tmp/test_references_and_objectsKIWD69/repo, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'init'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'remote', 'add', '--', 'origin', '/mnt/work/git/ext/gitdb/gitdb/ext/smmap'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'fetch', '-v', '--', 'origin'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=True, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'cat-file', '--batch-check'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['git', 'checkout', 'master'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'checkout', 'master'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['git', 'remote', 'rename', 'origin', 'new_origin'], cwd=/tmp/test_references_and_objectsKIWD69/empty, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Test Tutorials.test_references_and_objects failed, output is at '/tmp/test_references_and_objectsKIWD69'
+
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    ERROR: Failure: SyntaxError (invalid syntax (test_remote.py, line 963))
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/.tox/py27/lib/python2.7/site-packages/nose/loader.py", line 418, in loadTestsFromName
+        addr.filename, addr.module)
+    File "/mnt/work/.tox/py27/lib/python2.7/site-packages/nose/importer.py", line 47, in importFromPath
+        return self.importFromDir(dir_path, fqname)
+    File "/mnt/work/.tox/py27/lib/python2.7/site-packages/nose/importer.py", line 94, in importFromDir
+        mod = load_module(part_fqname, fh, filename, desc)
+    File "/mnt/work/git/test/test_remote.py", line 963
+        remote.push(**unsafe_option, allow_unsafe_options=True)
+                                ^
+    SyntaxError: invalid syntax
+
+    ======================================================================
+    ERROR: test_submodule_add_unsafe_options (git.test.test_submodule.TestSubmodule)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_submodule.py", line 989, in test_submodule_add_unsafe_options
+        Submodule.add(rw_repo, "new", "new", str(tmp_dir), clone_multi_options=[unsafe_option])
+    TypeError: add() got an unexpected keyword argument 'clone_multi_options'
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_add_unsafe_optionsHB9mN1'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_add_unsafe_optionsHB9mN1'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_submodule_add_unsafe_optionsHB9mN1, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_submodule_add_unsafe_optionsHB9mN1, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_submodule_add_unsafe_optionsHB9mN1
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    ERROR: test_submodule_add_unsafe_options_allowed (git.test.test_submodule.TestSubmodule)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_submodule.py", line 1004, in test_submodule_add_unsafe_options_allowed
+        rw_repo, "new", "new", str(tmp_dir), clone_multi_options=[unsafe_option], allow_unsafe_options=True
+    TypeError: add() got an unexpected keyword argument 'clone_multi_options'
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_add_unsafe_options_allowedrRyDE0'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_add_unsafe_options_allowedrRyDE0'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_submodule_add_unsafe_options_allowedrRyDE0, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_submodule_add_unsafe_options_allowedrRyDE0, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_submodule_add_unsafe_options_allowedrRyDE0
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    ERROR: test_submodule_update_unsafe_options (git.test.test_submodule.TestSubmodule)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_submodule.py", line 1060, in test_submodule_update_unsafe_options
+        submodule.update(clone_multi_options=[unsafe_option])
+    TypeError: update() got an unexpected keyword argument 'clone_multi_options'
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_update_unsafe_optionsspe95L'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_update_unsafe_optionsspe95L'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_submodule_update_unsafe_optionsspe95L, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_submodule_update_unsafe_optionsspe95L, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_submodule_update_unsafe_optionsspe95L
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    ERROR: test_submodule_update_unsafe_options_allowed (git.test.test_submodule.TestSubmodule)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_submodule.py", line 1075, in test_submodule_update_unsafe_options_allowed
+        submodule.update(clone_multi_options=[unsafe_option], allow_unsafe_options=True)
+    TypeError: update() got an unexpected keyword argument 'clone_multi_options'
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_update_unsafe_options_allowedipPrsm'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_submodule_update_unsafe_options_allowedipPrsm'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_submodule_update_unsafe_options_allowedipPrsm, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_submodule_update_unsafe_options_allowedipPrsm, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_submodule_update_unsafe_options_allowedipPrsm
+    --------------------- >> end captured logging << ---------------------
+
+======================================================================
+FAIL: test_init_repo_object (git.test.test_docs.Tutorials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/work/git/test/lib/helper.py", line 92, in wrapper
+    return func(self, path)
+  File "/mnt/work/git/test/test_docs.py", line 75, in test_init_repo_object
+    "It's ok if TC not running from `master`.")
+AssertionError: It's ok if TC not running from `master`.
+-------------------- >> begin captured logging << --------------------
+git.cmd: DEBUG: Popen(['git', 'init', '--bare'], cwd=/tmp/test_init_repo_objectyE5EWV/bare-repo, universal_newlines=False, shell=None, istream=None)
+git.cmd: DEBUG: Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/mnt/work, universal_newlines=False, shell=None, istream=None)
+git.cmd: DEBUG: Popen(['git', 'clone', '-v', '--', '/mnt/work/.git', '/tmp/test_init_repo_objectyE5EWV/to/this/path'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+git.repo.base: DEBUG: Cmd(['git', 'clone', '-v', '--', '/mnt/work/.git', '/tmp/test_init_repo_objectyE5EWV/to/this/path'])'s unused stdout:
+git.cmd: DEBUG: Popen(['git', 'init'], cwd=/tmp/test_init_repo_objectyE5EWV/path/for/new/repo, universal_newlines=False, shell=None, istream=None)
+git.cmd: DEBUG: Popen(['git', 'cat-file', '--batch-check'], cwd=/mnt/work, universal_newlines=False, shell=None, istream=<valid stream>)
+git.cmd: DEBUG: Popen(['git', 'archive', '--', '2894c0a889e58e6edb81b78cb835bc09a8d20b12'], cwd=/mnt/work, universal_newlines=False, shell=None, istream=None)
+git.test.lib.helper: INFO: Test Tutorials.test_init_repo_object failed, output is at '/tmp/test_init_repo_objectyE5EWV'
+
+--------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    FAIL: test_clone_from_unsafe_options_allowed (git.test.test_repo.TestRepo)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_repo.py", line 382, in test_clone_from_unsafe_options_allowed
+        assert tmp_file.exists()
+    AssertionError:
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-v', "--upload-pack='touch", "/tmp/tmp9vTvae/pwn'", '--', '/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci', '/tmp/tmp9vTvae/0'], cwd=/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-v', "--upload-pack='touch", "/tmp/tmp9vTvae/pwn'", '--', '/tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci', '/tmp/tmp9vTvae/0'])'s unused stdout:
+    git.cmd: DEBUG: AutoInterrupt wait stderr: "fatal: Too many arguments.\n\nusage: git clone [<options>] [--] <repo> [<dir>]\n\n    -v, --verbose         be more verbose\n    -q, --quiet           be more quiet\n    --progress            force progress reporting\n    -n, --no-checkout     don't create a checkout\n    --bare                create a bare repository\n    --mirror              create a mirror repository (implies bare)\n    -l, --local           to clone from a local repository\n    --no-hardlinks        don't use local hardlinks, always copy\n    -s, --shared          setup as shared repository\n    --recurse-submodules[=<pathspec>]\n                          initialize submodules in the clone\n    -j, --jobs <n>        number of submodules cloned in parallel\n    --template <template-directory>\n                          directory from which templates will be used\n    --reference <repo>    reference repository\n    --reference-if-able <repo>\n                          reference repository\n    --dissociate          use --reference only while cloning\n    -o, --origin <name>   use <name> instead of 'origin' to track upstream\n    -b, --branch <branch>\n                        checkout <branch> instead of the remote's HEAD\n    -u, --upload-pack <path>\n                          path to git-upload-pack on the remote\n    --depth <depth>       create a shallow clone of that depth\n    --shallow-since <time>\n                          create a shallow clone since a specific time\n    --shallow-exclude <revision>\n                          deepen history of shallow clone, excluding rev\n    --single-branch       clone only one branch, HEAD or --branch\n    --no-tags             don't clone any tags, and make later fetches not to follow them\n    --shallow-submodules  any cloned submodules will be shallow\n    --separate-git-dir <gitdir>\n                          separate git dir from working tree\n    -c, --config <key=value>\n                          set config inside the new repository\n    -4, --ipv4            use IPv4 addresses only\n    -6, --ipv6            use IPv6 addresses only\n    --filter <args>       object filtering\n\n"
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_clone_from_unsafe_options_allowedEjNaci
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    FAIL: test_clone_unsafe_options_allowed (git.test.test_repo.TestRepo)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_repo.py", line 307, in test_clone_unsafe_options_allowed
+        assert tmp_file.exists()
+    AssertionError:
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-v', "--upload-pack='touch", "/tmp/tmpRVMGKe/pwn'", '--', '/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW/.git', '/tmp/tmpRVMGKe/0'], cwd=/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-v', "--upload-pack='touch", "/tmp/tmpRVMGKe/pwn'", '--', '/tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW/.git', '/tmp/tmpRVMGKe/0'])'s unused stdout:
+    git.cmd: DEBUG: AutoInterrupt wait stderr: "fatal: Too many arguments.\n\nusage: git clone [<options>] [--] <repo> [<dir>]\n\n    -v, --verbose         be more verbose\n    -q, --quiet           be more quiet\n    --progress            force progress reporting\n    -n, --no-checkout     don't create a checkout\n    --bare                create a bare repository\n    --mirror              create a mirror repository (implies bare)\n    -l, --local           to clone from a local repository\n    --no-hardlinks        don't use local hardlinks, always copy\n    -s, --shared          setup as shared repository\n    --recurse-submodules[=<pathspec>]\n                          initialize submodules in the clone\n    -j, --jobs <n>        number of submodules cloned in parallel\n    --template <template-directory>\n                          directory from which templates will be used\n    --reference <repo>    reference repository\n    --reference-if-able <repo>\n                          reference repository\n    --dissociate          use --reference only while cloning\n    -o, --origin <name>   use <name> instead of 'origin' to track upstream\n    -b, --branch <branch>\n                        checkout <branch> instead of the remote's HEAD\n    -u, --upload-pack <path>\n                          path to git-upload-pack on the remote\n    --depth <depth>       create a shallow clone of that depth\n    --shallow-since <time>\n                          create a shallow clone since a specific time\n    --shallow-exclude <revision>\n                          deepen history of shallow clone, excluding rev\n    --single-branch       clone only one branch, HEAD or --branch\n    --no-tags             don't clone any tags, and make later fetches not to follow them\n    --shallow-submodules  any cloned submodules will be shallow\n    --separate-git-dir <gitdir>\n                          separate git dir from working tree\n    -c, --config <key=value>\n                          set config inside the new repository\n    -4, --ipv4            use IPv4 addresses only\n    -6, --ipv6            use IPv6 addresses only\n    --filter <args>       object filtering\n\n"
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_clone_unsafe_options_allowed8UYxsW
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    FAIL: test_untracked_files (git.test.test_repo.TestRepo)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/lib/helper.py", line 141, in repo_creator
+        return func(self, rw_repo)
+    File "/mnt/work/git/test/test_repo.py", line 754, in test_untracked_files
+        self.assertEqual(len(files), num_test_untracked)
+    AssertionError: 4 != 2
+    -------------------- >> begin captured logging << --------------------
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_untracked_filesZYCDas'], cwd=/mnt/work, universal_newlines=True, shell=None, istream=None)
+    git.repo.base: DEBUG: Cmd(['/usr/bin/git', 'clone', '-n', '--shared', '-v', '--', '/mnt/work/.git', '/tmp/non_bare_test_untracked_filesZYCDas'])'s unused stdout:
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'cat-file', '--batch-check'], cwd=/tmp/non_bare_test_untracked_filesZYCDas, universal_newlines=False, shell=None, istream=<valid stream>)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'checkout', 'BE-3955-cve-2022-24439'], cwd=/tmp/non_bare_test_untracked_filesZYCDas, universal_newlines=False, shell=None, istream=None)
+    git.cmd: DEBUG: Popen(['/usr/bin/git', 'status', '--porcelain', '--untracked-files'], cwd=/tmp/non_bare_test_untracked_filesZYCDas, universal_newlines=False, shell=None, istream=None)
+    git.test.lib.helper: INFO: Keeping repo after failure: /tmp/non_bare_test_untracked_filesZYCDas
+    --------------------- >> end captured logging << ---------------------
+
+    ======================================================================
+    FAIL: test_blocking_lock_file (git.test.test_util.TestUtils)
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+    File "/mnt/work/git/test/test_util.py", line 166, in test_blocking_lock_file
+        self.assertLess(elapsed, wait_time + extra_time)
+    AssertionError: 0.13907790184020996 not less than 0.12000000000000001
+
+----------------------------------------------------------------------
+Ran 404 tests in 130642.015s
+
+FAILED (SKIP=41, errors=6, failures=5)
+ERROR: InvocationError for command /mnt/work/.tox/py27/bin/nosetests (exited with code 1)
+__________________________________________________________________________________________________________________ summary __________________________________________________________________________________________________________________
+ERROR:   py27: commands failed
+root@dc38f6142660:/mnt/work#
