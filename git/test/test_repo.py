@@ -1023,3 +1023,24 @@ class TestRepo(TestBase):
             self.assertEqual(r.working_dir, repo_dir)
         finally:
             os.environ = oldenv
+
+    @with_rw_repo("HEAD")
+    def test_clone_command_injection(self, rw_repo):
+        tmp_dir = pathlib.Path(tempfile.mkdtemp())
+        unexpected_file = tmp_dir / "pwn"
+        assert not unexpected_file.exists()
+        payload = f"--upload-pack=touch {unexpected_file}"
+        rw_repo.clone(payload)
+        assert not unexpected_file.exists()
+        # A repo was cloned with the payload as name
+        assert pathlib.Path(payload).exists()
+    @with_rw_repo("HEAD")
+    def test_clone_from_command_injection(self, rw_repo):
+        tmp_dir = pathlib.Path(tempfile.mkdtemp())
+        temp_repo = Repo.init(tmp_dir / "repo")
+        unexpected_file = tmp_dir / "pwn"
+        assert not unexpected_file.exists()
+        payload = f"--upload-pack=touch {unexpected_file}"
+        with self.assertRaises(GitCommandError):
+            rw_repo.clone_from(payload, temp_repo.common_dir)
+        assert not unexpected_file.exists()
