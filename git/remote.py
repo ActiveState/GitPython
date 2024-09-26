@@ -830,6 +830,7 @@ class Remote(LazyMixin, Iterable):
             for ref in args:
                 if ref:
                     Git.check_unsafe_protocols(ref)
+
         if not allow_unsafe_options:
             Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_fetch_options)
 
@@ -864,6 +865,7 @@ class Remote(LazyMixin, Iterable):
         if not allow_unsafe_protocols:
             for ref in refspec:
                 Git.check_unsafe_protocols(ref)
+
         if not allow_unsafe_options:
             Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_pull_options)
 
@@ -913,6 +915,7 @@ class Remote(LazyMixin, Iterable):
         if not allow_unsafe_protocols:
             for ref in refspec:
                 Git.check_unsafe_protocols(ref)
+
         if not allow_unsafe_options:
             Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_push_options)
 
@@ -930,7 +933,7 @@ class Remote(LazyMixin, Iterable):
 
     def _clear_cache(self):
         try:
-            del(self._config_reader)
+            del (self._config_reader)
         except AttributeError:
             pass
         # END handle exception
