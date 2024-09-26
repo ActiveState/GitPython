@@ -267,7 +267,7 @@ class Submodule(IndexObject, Iterable, Traversable):
         clone = git.Repo.clone_from(
             url,
             module_checkout_path,
-            allow_unsafe_options = allow_unsafe_options,
+            allow_unsafe_options=allow_unsafe_options,
             allow_unsafe_protocols=allow_unsafe_protocols,
             **kwargs
         )
@@ -427,8 +427,8 @@ class Submodule(IndexObject, Iterable, Traversable):
                 url,
                 path,
                 name,
-                allow_unsafe_options=False,
-                allow_unsafe_protocols=False,
+                allow_unsafe_options=allow_unsafe_options,
+                allow_unsafe_protocols=allow_unsafe_protocols,
                 **kwargs
             )
         # END verify url
@@ -469,7 +469,7 @@ class Submodule(IndexObject, Iterable, Traversable):
         progress=None,
         dry_run=False,
         force=False,
-        keep_going=False
+        keep_going=False,
         allow_unsafe_options=False,
         allow_unsafe_protocols=False,
     ):
@@ -569,8 +569,8 @@ class Submodule(IndexObject, Iterable, Traversable):
                         self.path, 
                         self.name, 
                         n=True,
-                        allow_unsafe_options=False,
-                        allow_unsafe_protocols=False,
+                        allow_unsafe_options=allow_unsafe_options,
+                        allow_unsafe_protocols=allow_unsafe_protocols,
                     )
                 # END handle dry-run
                 progress.update(END | CLONE, 0, 1, prefix + "Done cloning to %s" % checkout_module_abspath)
