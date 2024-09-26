@@ -4,7 +4,7 @@
 import os
 import shutil
 import tempfile
-import from pathlib import Path
+from pathlib import Path
 import sys
 from unittest import skipIf
 
@@ -92,7 +92,7 @@ class TestSubmodule(TestBase):
         assert smold != sm                  # the name changed
 
         # force it to reread its information
-        del(smold._url)
+        del (smold._url)
         smold.url == sm.url  # @NoEffect
 
         # test config_reader/writer methods
@@ -246,7 +246,7 @@ class TestSubmodule(TestBase):
             for repo in smods:
                 assert repo.head.commit == repo.head.ref.tracking_branch().commit
             # END for each repo to check
-            del(smods)
+            del (smods)
 
             # if the head is detached, it still works ( but warns )
             smref = sm.module().head.ref
