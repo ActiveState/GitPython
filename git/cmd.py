@@ -198,7 +198,7 @@ class Git(LazyMixin):
             )
 
     @classmethod
-    def check_unsafe_options(cls, options: List[str], unsafe_options: List[str]) -> None:
+    def check_unsafe_options(cls, options, unsafe_options):
         """
         Check for unsafe options.
         Some options that are passed to `git <command>` can be used to execute
@@ -1131,7 +1131,7 @@ class Git(LazyMixin):
         :note: not threadsafe"""
         hexsha, typename, size, stream = self.stream_object_data(ref)
         data = stream.read(size)
-        del(stream)
+        del (stream)
         return (hexsha, typename, size, data)
 
     def stream_object_data(self, ref):
