@@ -947,7 +947,7 @@ class TestSubmodule(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% " + str(tmp_file),
             "fd::/foo",
         ]
         for url in urls:
@@ -960,7 +960,7 @@ class TestSubmodule(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% " + str(tmp_file),
             "fd::/foo",
         ]
         for url in urls:
@@ -975,8 +975,8 @@ class TestSubmodule(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
-            f"--upload-pack='touch {tmp_file}'",
-            f"-u 'touch {tmp_file}'",
+            "--upload-pack='touch " + str(tmp_file) + "'",
+            "-u 'touch " + str(tmp_file) + "'",
             "--config=protocol.ext.allow=always",
             "-c protocol.ext.allow=always",
         ]
@@ -990,8 +990,8 @@ class TestSubmodule(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
-            f"--upload-pack='touch {tmp_file}'",
-            f"-u 'touch {tmp_file}'",
+            "--upload-pack='touch " + str(tmp_file) + "'",
+            "-u 'touch " + str(tmp_file) + "'",
         ]
         for unsafe_option in unsafe_options:
             # The options will be allowed, but the command will fail.

@@ -712,7 +712,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
