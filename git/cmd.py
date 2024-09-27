@@ -180,7 +180,7 @@ class Git(LazyMixin):
         return slots_to_dict(self, exclude=self._excluded_)
 
     @classmethod
-    def check_unsafe_protocols(cls, url: str) -> None:
+    def check_unsafe_protocols(cls, url):
         """
         Check for unsafe protocols.
         Apart from the usual protocols (http, git, ssh),
@@ -194,7 +194,7 @@ class Git(LazyMixin):
         if match:
             protocol = match.group(1)
             raise UnsafeProtocolError(
-                f"The `{protocol}::` protocol looks suspicious, use `allow_unsafe_protocols=True` to allow it."
+                "The `" + protocol + "::` protocol looks suspicious, use `allow_unsafe_protocols=True` to allow it."
             )
 
     @classmethod
@@ -214,7 +214,7 @@ class Git(LazyMixin):
             for unsafe_option, bare_option in zip(unsafe_options, bare_unsafe_options):
                 if option.startswith(unsafe_option) or option == bare_option:
                     raise UnsafeOptionError(
-                        f"{unsafe_option} is not allowed, use `allow_unsafe_options=True` to allow it."
+                        unsafe_option +" is not allowed, use `allow_unsafe_options=True` to allow it."
                     )
 
     def __setstate__(self, d):

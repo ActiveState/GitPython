@@ -1020,8 +1020,8 @@ class Repo(object):
             path,
             progress=None,
             multi_options=None,
-            allow_unsafe_protocols: bool = False,
-            allow_unsafe_options: bool = False,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
             **kwargs
     ):
         """Create a clone from this repository.
@@ -1059,8 +1059,8 @@ class Repo(object):
             progress=None,
             env=None,
             multi_options=None,
-            allow_unsafe_protocols: bool = False,
-            allow_unsafe_options: bool = False,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
             **kwargs
     ):
         """Create a clone from the given URL

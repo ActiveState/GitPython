@@ -265,8 +265,8 @@ class TestRepo(TestBase):
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
-            f"--upload-pack='touch {tmp_file}'",
-            f"-u 'touch {tmp_file}'",
+            "--upload-pack='touch " + str(tmp_file) + "'",
+            "-u 'touch " + str(tmp_file) + "'",
             "--config=protocol.ext.allow=always",
             "-c protocol.ext.allow=always",
         ]
@@ -280,8 +280,8 @@ class TestRepo(TestBase):
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
-            f"--upload-pack='touch {tmp_file}'",
-            f"-u 'touch {tmp_file}'",
+            "--upload-pack='touch " + str(tmp_file) + "'",
+            "-u 'touch " + str(tmp_file) + "'",
         ]
         for i, unsafe_option in enumerate(unsafe_options):
             destination = tmp_dir / str(i)
