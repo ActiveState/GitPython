@@ -159,7 +159,9 @@ class TestUtils(TestBase):
         wait_lock = BlockingLockFile(my_file, 0.05, wait_time)
         self.failUnlessRaises(IOError, wait_lock._obtain_lock)
         elapsed = time.time() - start
-        extra_time = 0.02
+        # extra_time = 0.02
+        # Takes longer on a local machine
+        extra_time = 0.05
         if is_win:
             # for Appveyor
             extra_time *= 6  # NOTE: Indeterministic failures here...

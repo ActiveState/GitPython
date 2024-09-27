@@ -37,10 +37,9 @@ import gc
 import gitdb
 
 try:
-    import pathlib
+    from pathlib import Path
 except ImportError:
-    pathlib = None
-
+    from pathlib2 import Path
 
 log = logging.getLogger(__name__)
 
@@ -982,6 +981,8 @@ class Repo(object):
 
         if not allow_unsafe_protocols:
             Git.check_unsafe_protocols(str(url))
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=cls.unsafe_git_clone_options)
         if not allow_unsafe_options and multi_options:
             Git.check_unsafe_options(options=multi_options, unsafe_options=cls.unsafe_git_clone_options)
 
