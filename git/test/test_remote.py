@@ -22,7 +22,11 @@ from git import (
     GitCommandError,
 )
 from git.cmd import Git
-from pathlib import Path
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
+
 from git.exc import UnsafeOptionError, UnsafeProtocolError
 from git.compat import string_types
 from git.test.lib import (
@@ -726,7 +730,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -740,7 +744,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -754,7 +758,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -767,7 +771,7 @@ class TestRemote(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -780,12 +784,12 @@ class TestRemote(TestBase):
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for i, url in enumerate(urls):
             remote = Remote.create(
-                rw_repo, f"origin{i}", url, allow_unsafe_protocols=True
+                rw_repo, "origin"+str(i), url, allow_unsafe_protocols=True
             )
             assert remote.url == url
             assert not tmp_file.exists()
@@ -796,7 +800,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -810,7 +814,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -825,7 +829,7 @@ class TestRemote(TestBase):
         remote = rw_repo.remote("origin")
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
-        unsafe_options = [{"upload-pack": f"touch {tmp_file}"}]
+        unsafe_options = [{"upload-pack": "touch " + str(tmp_file)}]
         for unsafe_option in unsafe_options:
             with self.assertRaises(UnsafeOptionError):
                 remote.fetch(**unsafe_option)
@@ -836,12 +840,12 @@ class TestRemote(TestBase):
         remote = rw_repo.remote("origin")
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
-        unsafe_options = [{"upload-pack": f"touch {tmp_file}"}]
+        unsafe_options = [{"upload-pack": "touch " + str(tmp_file)}]
         for unsafe_option in unsafe_options:
             # The options will be allowed, but the command will fail.
             assert not tmp_file.exists()
             with self.assertRaises(GitCommandError):
-                remote.fetch(**unsafe_option, allow_unsafe_options=True)
+                remote.fetch(allow_unsafe_options=True, **unsafe_option)
             assert tmp_file.exists()
 
     @with_rw_repo("HEAD")
@@ -850,7 +854,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% " + str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -864,7 +868,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% "+str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -879,7 +883,7 @@ class TestRemote(TestBase):
         remote = rw_repo.remote("origin")
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
-        unsafe_options = [{"upload-pack": f"touch {tmp_file}"}]
+        unsafe_options = [{"upload-pack": "touch " + str(tmp_file)}]
         for unsafe_option in unsafe_options:
             with self.assertRaises(UnsafeOptionError):
                 remote.pull(**unsafe_option)
@@ -890,12 +894,12 @@ class TestRemote(TestBase):
         remote = rw_repo.remote("origin")
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
-        unsafe_options = [{"upload-pack": f"touch {tmp_file}"}]
+        unsafe_options = [{"upload-pack": "touch " + str(tmp_file)}]
         for unsafe_option in unsafe_options:
             # The options will be allowed, but the command will fail.
             assert not tmp_file.exists()
             with self.assertRaises(GitCommandError):
-                remote.pull(**unsafe_option, allow_unsafe_options=True)
+                remote.pull(allow_unsafe_options=True, **unsafe_option)
             assert tmp_file.exists()
 
     @with_rw_repo("HEAD")
@@ -904,7 +908,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% " + str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -918,7 +922,7 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         remote = rw_repo.remote("origin")
         urls = [
-            f"ext::sh -c touch% {tmp_file}",
+            "ext::sh -c touch% " + str(tmp_file),
             "fd::17/foo",
         ]
         for url in urls:
@@ -935,8 +939,8 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
             {
-                "receive-pack": f"touch {tmp_file}",
-                "exec": f"touch {tmp_file}",
+                "receive-pack": "touch " + str(tmp_file),
+                "exec": "touch " + str(tmp_file),
             }
         ]
         for unsafe_option in unsafe_options:
@@ -952,14 +956,14 @@ class TestRemote(TestBase):
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
             {
-                "receive-pack": f"touch {tmp_file}",
-                "exec": f"touch {tmp_file}",
+                "receive-pack": "touch " + str(tmp_file),
+                "exec": "touch " + str(tmp_file),
             }
         ]
         for unsafe_option in unsafe_options:
             # The options will be allowed, but the command will fail.
             assert not tmp_file.exists()
             with self.assertRaises(GitCommandError):
-                remote.push(**unsafe_option, allow_unsafe_options=True)
+                remote.push(allow_unsafe_options=True, **unsafe_option)
             assert tmp_file.exists()
             tmp_file.unlink()

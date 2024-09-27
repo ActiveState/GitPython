@@ -861,7 +861,7 @@ class Remote(LazyMixin, Iterable):
             self._assert_refspec()
         kwargs = add_progress(kwargs, self.repo.git, progress)
 
-        refspec = Git._unpack_args(refspec or [])
+        refspec = Git._Git__unpack_args(refspec or [])
         if not allow_unsafe_protocols:
             for ref in refspec:
                 Git.check_unsafe_protocols(ref)
