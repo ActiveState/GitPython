@@ -4,10 +4,12 @@
 #
 # This module is part of GitPython and is released under
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
+import contextlib
 import os
+import shutil
 import subprocess
 import sys
-from tempfile import TemporaryFile
+from tempfile import TemporaryDirectory, TemporaryFile
 
 from git import (
     Git,
@@ -39,6 +41,16 @@ except ImportError:
     import mock
 
 from git.compat import is_win
+
+@contextlib.contextmanager
+def _chdir(new_dir):
+    """Context manager to temporarily change directory. Not reentrant."""
+    old_dir = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
 
 
 class TestGit(TestBase):
@@ -99,6 +111,23 @@ class TestGit(TestBase):
 
     def test_it_executes_git_to_shell_and_returns_result(self):
         assert_match(r'^git version [\d\.]{2}.*$', self.git.execute(["git", "version"]))
+
+    def test_it_executes_git_not_from_cwd(self):
+        with TemporaryDirectory() as tmpdir:
+            if is_win:
+                # Copy an actual binary executable that is not git.
+                other_exe_path = os.path.join(os.getenv("WINDIR"), "system32", "hostname.exe")
+                impostor_path = os.path.join(tmpdir, "git.exe")
+                shutil.copy(other_exe_path, impostor_path)
+            else:
+                # Create a shell script that doesn't do anything.
+                impostor_path = os.path.join(tmpdir, "git")
+                with open(impostor_path, mode="w", encoding="utf-8") as file:
+                    print("#!/bin/sh", file=file)
+                os.chmod(impostor_path, 0o755)
+
+            with _chdir(tmpdir):
+                self.assertRegex(self.git.execute(["git", "version"]), r"^git version\b")
 
     def test_it_accepts_stdin(self):
         filename = fixture_path("cat_file_blob")

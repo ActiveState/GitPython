@@ -4,7 +4,7 @@
 # This module is part of GitPython and is released under
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
 
-from contextlib import contextmanager
+import contextlib
 import io
 import logging
 import os
@@ -19,6 +19,7 @@ import sys
 import threading
 from collections import OrderedDict
 from textwrap import dedent
+import unittest.mock
 
 from git.compat import (
     string_types,
@@ -705,11 +706,15 @@ class Git(LazyMixin):
             cmd_not_found_exception = OSError
             if kill_after_timeout:
                 raise GitCommandError(command, '"kill_after_timeout" feature is not supported on Windows.')
+
+            # Only search PATH, not CWD. This must be in the *caller* environment. The "1" can be any value.
+            patch_caller_env = unittest.mock.patch.dict(os.environ, {"NoDefaultCurrentDirectoryInExePath": "1"})
         else:
             if sys.version_info[0] > 2:
                 cmd_not_found_exception = FileNotFoundError  # NOQA # exists, flake8 unknown @UndefinedVariable
             else:
                 cmd_not_found_exception = OSError
+            patch_caller_env = contextlib.nullcontext()
         # end handle
 
         stdout_sink = (PIPE
@@ -721,19 +726,21 @@ class Git(LazyMixin):
         log.debug("Popen(%s, cwd=%s, universal_newlines=%s, shell=%s, istream=%s)",
                   command, cwd, universal_newlines, shell, istream_ok)
         try:
-            proc = Popen(command,
-                         env=env,
-                         cwd=cwd,
-                         bufsize=-1,
-                         stdin=istream,
-                         stderr=PIPE,
-                         stdout=stdout_sink,
-                         shell=shell is not None and shell or self.USE_SHELL,
-                         close_fds=is_posix,  # unsupported on windows
-                         universal_newlines=universal_newlines,
-                         creationflags=PROC_CREATIONFLAGS,
-                         **subprocess_kwargs
-                         )
+            with patch_caller_env:
+                proc = Popen(
+                    command,
+                    env=env,
+                    cwd=cwd,
+                    bufsize=-1,
+                    stdin=istream,
+                    stderr=PIPE,
+                    stdout=stdout_sink,
+                    shell=shell is not None and shell or self.USE_SHELL,
+                    close_fds=is_posix,  # unsupported on windows
+                    universal_newlines=universal_newlines,
+                    creationflags=PROC_CREATIONFLAGS,
+                    **subprocess_kwargs,
+                )
         except cmd_not_found_exception as err:
             raise GitCommandNotFound(command, err)
 
@@ -862,7 +869,7 @@ class Git(LazyMixin):
                 del self._environment[key]
         return old_env
 
-    @contextmanager
+    @contextlib.contextmanager
     def custom_environment(self, **kwargs):
         """
         A context manager around the above ``update_environment`` method to restore the
