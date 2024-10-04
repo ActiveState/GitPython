@@ -74,11 +74,11 @@ def run_commit_hook(name, index, *args):
     env["GIT_EDITOR"] = ":"
     try:
         cmd = safer_popen([hp] + list(args),
-                               env=env,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE,
-                               cwd=index.repo.working_dir,
-                               close_fds=is_posix)
+                        env=env,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        cwd=index.repo.working_dir,
+                        close_fds=is_posix)
     except Exception as ex:
         raise HookExecutionError(hp, ex)
     else:

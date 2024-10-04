@@ -6,7 +6,8 @@
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
 from __future__ import print_function
 
-import contextlib
+import contextlib2 as contextlib
+import ddt
 import os
 import shutil
 import subprocess
@@ -31,10 +32,11 @@ from git.test.lib import (
     assert_equal,
     assert_true,
     assert_match,
-    fixture_path
+    fixture_path,
+    with_rw_directory,
 )
-from git.test.lib import with_rw_directory
-from git.util import finalize_process
+
+from git.util import finalize_process, cwd
 
 import os.path as osp
 
@@ -50,6 +52,7 @@ except ImportError:
     from pathlib2 import Path
 
 from git.compat import is_win
+
 
 @contextlib.contextmanager
 def _chdir(new_dir):
@@ -77,7 +80,7 @@ def _patch_out_env(name):
             os.environ[name] = old_value
 
 
-
+@ddt.ddt
 class TestGit(TestBase):
 
     @classmethod
@@ -137,23 +140,46 @@ class TestGit(TestBase):
     def test_it_executes_git_to_shell_and_returns_result(self):
         assert_match(r'^git version [\d\.]{2}.*$', self.git.execute(["git", "version"]))
 
-    def test_it_executes_git_not_from_cwd(self):
-        with TemporaryDirectory() as tmpdir:
-            if is_win:
-                # Copy an actual binary executable that is not git.
-                other_exe_path = os.path.join(os.getenv("WINDIR"), "system32", "hostname.exe")
-                impostor_path = os.path.join(tmpdir, "git.exe")
-                shutil.copy(other_exe_path, impostor_path)
-            else:
-                # Create a shell script that doesn't do anything.
-                impostor_path = os.path.join(tmpdir, "git")
-                with open(impostor_path, mode="w") as file:
-                    print("#!/bin/sh", file=file)
-                os.chmod(impostor_path, 0o755)
+    @ddt.data(
+        # chdir_to_repo, shell, command, use_shell_impostor
+        (False, False, ["git", "version"], False),
+        (False, True, "git version", False),
+        (False, True, "git version", True),
+        (True, False, ["git", "version"], False),
+        (True, True, "git version", False),
+        (True, True, "git version", True),
+    )
+    def test_it_executes_git_not_from_cwd(self, case):
+        self.internal_it_executes_git_not_from_cwd(case)
 
-            with _chdir(tmpdir):
-                # six.assertRegex(self.git.execute(["git", "version"]).encode("UTF-8"), r"^git version\b")
-                self.assertRegexpMatches(self.git.execute(["git", "version"]), r"^git version\b")
+    @with_rw_directory
+    def internal_it_executes_git_not_from_cwd(self, rw_dir, case):
+        chdir_to_repo, shell, command, use_shell_impostor = case
+        repo = Repo.init(rw_dir)
+        if os.name == "nt":
+            # Copy an actual binary executable that is not git. (On Windows, running
+            # "hostname" only displays the hostname, it never tries to change it.)
+            other_exe_path = Path(os.environ["SystemRoot"], "system32", "hostname.exe")
+            impostor_path = Path(rw_dir, "git.exe")
+            shutil.copy(other_exe_path, str(impostor_path))
+        else:
+            # Create a shell script that doesn't do anything.
+            impostor_path = Path(rw_dir, "git")
+            impostor_path.write_text(u"#!/bin/sh\n", encoding="utf-8")
+            os.chmod(str(impostor_path), 0o755)
+        if use_shell_impostor:
+            shell_name = "cmd.exe" if os.name == "nt" else "sh"
+            shutil.copy(str(impostor_path), str(Path(rw_dir, shell_name)))
+        with contextlib.ExitStack() as stack:
+            if chdir_to_repo:
+                stack.enter_context(cwd(rw_dir))
+            if use_shell_impostor:
+                stack.enter_context(_patch_out_env("ComSpec"))
+            # Run the command without raising an exception on failure, as the exception
+            # message is currently misleading when the command is a string rather than a
+            # sequence of strings (it really runs "git", but then wrongly reports "g").
+            output = repo.git.execute(command, with_exceptions=False, shell=shell)
+        self.assertRegexpMatches(output, r"^git version\b")
 
     def test_it_accepts_stdin(self):
         filename = fixture_path("cat_file_blob")
@@ -325,7 +351,7 @@ class TestGit(TestBase):
                     self.assertIn('FOO', str(err))
 
     def test_handle_process_output(self):
-        from git.cmd import handle_process_output
+        from git.cmd import handle_process_output, safer_popen
 
         line_count = 5002
         count = [None, 0, 0]
@@ -337,13 +363,11 @@ class TestGit(TestBase):
             count[2] += 1
 
         cmdline = [sys.executable, fixture_path('cat_file.py'), str(fixture_path('issue-301_stderr'))]
-        proc = subprocess.Popen(cmdline,
-                                stdin=None,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                shell=False,
-                                # creationflags=cmd.PROC_CREATIONFLAGS,
-                                )
+        proc = safer_popen(cmdline,
+                           stdin=None,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           shell=False)
 
         handle_process_output(proc, counter_stdout, counter_stderr, finalize_process)
 

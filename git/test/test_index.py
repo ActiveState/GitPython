@@ -5,14 +5,21 @@
 # This module is part of GitPython and is released under
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
 
+import contextlib
+# from dataclasses import dataclass
 from io import BytesIO
 import os
+import shutil
 from stat import (
     S_ISLNK,
     ST_MODE
 )
+import sys
 import tempfile
 from unittest import skipIf
+import ddt
+
+from git.test.lib.helper import VirtualEnvironment
 
 from git import (
     IndexFile,
@@ -30,25 +37,31 @@ from git.exc import (
     HookExecutionError,
     InvalidGitRepositoryError
 )
-from git.index.fun import hook_path
+from git.index.fun import hook_path, run_commit_hook
 from git.index.typ import (
     BaseIndexEntry,
     IndexEntry
 )
 from git.objects import Blob
 from git.test.lib import (
-    TestBase,
     fixture_path,
     fixture,
-    with_rw_repo
+    with_rw_directory,
+    with_rw_repo,
+    TestBase
 )
-from git.test.lib import with_rw_directory
-from git.util import Actor, rmtree
+from git.util import Actor, cwd, rmtree
 from git.util import HIDE_WINDOWS_KNOWN_ERRORS, hex_to_bin
 from gitdb.base import IStream
 
 import os.path as osp
 from git.cmd import Git
+
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
+
 
 HOOKS_SHEBANG = "#!/usr/bin/env sh\n"
 
@@ -67,6 +80,141 @@ def _make_hook(git_dir, name, content, make_exec=True):
     return hp
 
 
+@contextlib.contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
+
+
+def _get_windows_ansi_encoding():
+    """Get the encoding specified by the Windows system-wide ANSI active code page."""
+    # locale.getencoding may work but is only in Python 3.11+. Use the registry instead.
+    import winreg
+
+    hklm_path = R"SYSTEM\CurrentControlSet\Control\Nls\CodePage"
+    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, hklm_path) as key:
+        value, _ = winreg.QueryValueEx(key, "ACP")
+    return "cp" + str(value)
+
+
+class WinBashStatus:
+    """Namespace of native-Windows bash.exe statuses. Affects what hook tests can pass.
+
+    Call check() to check the status. (CheckError and WinError should not typically be
+    used to trigger skip or xfail, because they represent unexpected situations.)
+    """
+
+    # @dataclass
+    class Inapplicable:
+        """This system is not native Windows: either not Windows at all, or Cygwin."""
+
+    # @dataclass
+    class Absent:
+        """No command for bash.exe is found on the system."""
+
+    # @dataclass
+    class Native:
+        """Running bash.exe operates outside any WSL distribution (as with Git Bash)."""
+
+    # @dataclass
+    class Wsl:
+        """Running bash.exe calls bash in a WSL distribution."""
+
+    # @dataclass
+    class WslNoDistro:
+        """Running bash.exe tries to run bash on a WSL distribution, but none exists."""
+
+        process = None
+        message = None
+
+    # @dataclass
+    class CheckError:
+        """Running bash.exe fails in an unexpected error or gives unexpected output."""
+
+        process = None
+        message = None
+
+    # @dataclass
+    class WinError:
+        """bash.exe may exist but can't run. CreateProcessW fails unexpectedly."""
+
+        exception = None
+
+    @classmethod
+    def check(cls):
+        """Check the status of the bash.exe that run_commit_hook will try to use.
+
+        This runs a command with bash.exe and checks the result. On Windows, shell and
+        non-shell executable search differ; shutil.which often finds the wrong bash.exe.
+
+        run_commit_hook uses Popen, including to run bash.exe on Windows. It doesn't
+        pass shell=True (and shouldn't). On Windows, Popen calls CreateProcessW, which
+        checks some locations before using the PATH environment variable. It is expected
+        to try System32, even if another directory with the executable precedes it in
+        PATH. When WSL is present, even with no distributions, bash.exe usually exists
+        in System32; Popen finds it even if a shell would run another one, as on CI.
+        (Without WSL, System32 may still have bash.exe; users sometimes put it there.)
+        """
+        if sys.platform != "win32":
+            return cls.Inapplicable()
+
+        try:
+            # Output rather than forwarding the test command's exit status so that if a
+            # failure occurs before we even get to this point, we will detect it. For
+            # information on ways to check for WSL, see https://superuser.com/a/1749811.
+            script = 'test -e /proc/sys/fs/binfmt_misc/WSLInterop; echo "$?"'
+            command = ["bash.exe", "-c", script]
+            process = subprocess.run(command, capture_output=True)
+        except FileNotFoundError:
+            return cls.Absent()
+        except OSError as error:
+            return cls.WinError(error)
+
+        text = cls._decode(process.stdout).rstrip()  # stdout includes WSL's own errors.
+
+        if process.returncode == 1 and re.search(r"\bhttps://aka.ms/wslstore\b", text):
+            return cls.WslNoDistro(process, text)
+        if process.returncode != 0:
+            _logger.error("Error running bash.exe to check WSL status: %s", text)
+            return cls.CheckError(process, text)
+        if text == "0":
+            return cls.Wsl()
+        if text == "1":
+            return cls.Native()
+        _logger.error("Strange output checking WSL status: %s", text)
+        return cls.CheckError(process, text)
+
+    @staticmethod
+    def _decode(stdout):
+        """Decode bash.exe output as best we can."""
+        # When bash.exe is the WSL wrapper but the output is from WSL itself rather than
+        # code running in a distribution, the output is often in UTF-16LE, which Windows
+        # uses internally. The UTF-16LE representation of a Windows-style line ending is
+        # rarely seen otherwise, so use it to detect this situation.
+        if b"\r\0\n\0" in stdout:
+            return stdout.decode("utf-16le")
+
+        # At this point, the output is either blank or probably not UTF-16LE. It's often
+        # UTF-8 from inside a WSL distro or non-WSL bash shell. Our test command only
+        # uses the ASCII subset, so we can safely guess a wrong code page for it. Errors
+        # from such an environment can contain any text, but unlike WSL's own messages,
+        # they go to stderr, not stdout. So we can try the system ANSI code page first.
+        acp = _get_windows_ansi_encoding()
+        try:
+            return stdout.decode(acp)
+        except UnicodeDecodeError:
+            pass
+        except LookupError as error:
+            _logger.warning(str(error))  # Message already says "Unknown encoding:".
+
+        # Assume UTF-8. If invalid, substitute Unicode replacement characters.
+        return stdout.decode("utf-8", errors="replace")
+
+
+_win_bash_status = WinBashStatus.check()
+
+
+
+@ddt.ddt
 class TestIndex(TestBase):
 
     def __init__(self, *args):
@@ -927,3 +1075,41 @@ class TestIndex(TestBase):
                 assert str(err)
         else:
             raise AssertionError("Should have cought a HookExecutionError")
+
+    @ddt.data((False,), (True,))
+    @with_rw_directory
+    def test_hook_uses_shell_not_from_cwd(self, rw_dir, case):
+        (chdir_to_repo,) = case
+        shell_name = "bash.exe" if os.name == "nt" else "sh"
+        maybe_chdir = cwd(rw_dir) if chdir_to_repo else nullcontext()
+        repo = Repo.init(rw_dir)
+        # We need an impostor shell that works on Windows and that the test can
+        # distinguish from the real bash.exe. But even if the real bash.exe is absent or
+        # unusable, we should verify the impostor is not run. So the impostor needs a
+        # clear side effect (unlike in TestGit.test_it_executes_git_not_from_cwd). Popen
+        # on Windows uses CreateProcessW, which disregards PATHEXT; the impostor may
+        # need to be a binary executable to ensure the vulnerability is found if
+        # present. No compiler need exist, shipping a binary in the test suite may
+        # target the wrong architecture, and generating one in a bespoke way may trigger
+        # false positive virus scans. So we use a Bash/Python polyglot for the hook and
+        # use the Python interpreter itself as the bash.exe impostor. But an interpreter
+        # from a venv may not run when copied outside of it, and a global interpreter
+        # won't run when copied to a different location if it was installed from the
+        # Microsoft Store. So we make a new venv in rw_dir and use its interpreter.
+        venv = VirtualEnvironment(rw_dir, with_pip=False)
+        shutil.copy(str(venv.python), str(Path(rw_dir, shell_name)))
+        shutil.copy(str(fixture_path("polyglot")), str(hook_path("polyglot", repo.git_dir)))
+        payload = Path(rw_dir, "payload.txt")
+        if type(_win_bash_status) in {WinBashStatus.Absent, WinBashStatus.WslNoDistro}:
+            # The real shell can't run, but the impostor should still not be used.
+            with self.assertRaises(HookExecutionError):
+                with maybe_chdir:
+                    run_commit_hook("polyglot", repo.index)
+            self.assertFalse(payload.exists())
+        else:
+            # The real shell should run, and not the impostor.
+            with maybe_chdir:
+                run_commit_hook("polyglot", repo.index)
+            self.assertFalse(payload.exists())
+            output = Path(rw_dir, "output.txt").read_text(encoding="utf-8")
+            self.assertEqual(output, "Ran intended hook.\n")
