@@ -38,7 +38,28 @@ try:
 except ImportError:
     import mock
 
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
+
 from git.compat import is_win
+
+
+@contextlib.contextmanager
+def _patch_out_env(name):
+    try:
+        old_value = os.environ[name]
+    except KeyError:
+        old_value = None
+    else:
+        del os.environ[name]
+    try:
+        yield
+    finally:
+        if old_value is not None:
+            os.environ[name] = old_value
+
 
 
 class TestGit(TestBase):
