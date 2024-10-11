@@ -124,7 +124,7 @@ def handle_process_output(process, stdout_handler, stderr_handler,
         return finalizer(process)
 
 
-def _safer_popen_windows(command, shell, env=None, **kwargs,):
+def _safer_popen_windows(command, shell, env=None, **kwargs):
     """Call :class:`subprocess.Popen` on Windows but don't include a CWD in the search.
     This avoids an untrusted search path condition where a file like ``git.exe`` in a
     malicious repository would be run when GitPython operates on the repository. The
@@ -167,7 +167,7 @@ def _safer_popen_windows(command, shell, env=None, **kwargs,):
             shell=shell,
             env=safer_env,
             creationflags=creationflags,
-            **kwargs,
+            **kwargs
         )
 
 
