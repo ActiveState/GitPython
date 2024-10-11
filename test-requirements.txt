@@ -1,6 +1,7 @@
-ddt>=1.1.1
 coverage
+ddt>=1.1.1
 flake8
+mock; python_version=='2.7'
 nose
 tox
-mock; python_version=='2.7'
+venv
