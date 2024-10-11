@@ -423,4 +423,4 @@ class VirtualEnvironment:
             path = osp.join(self.env_dir, "bin", basename)
         if osp.isfile(path) or osp.islink(path):
             return path
-        raise RuntimeError(f"no regular file or symlink {path!r}")
+        raise RuntimeError("no regular file or symlink " + str(path))
