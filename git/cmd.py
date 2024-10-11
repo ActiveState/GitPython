@@ -779,7 +779,7 @@ class Git(LazyMixin):
                 stdout=stdout_sink,
                 shell=shell is not None and shell or self.USE_SHELL,
                 universal_newlines=universal_newlines,
-                **subprocess_kwargs,
+                **subprocess_kwargs
             )
         except cmd_not_found_exception as err:
             raise GitCommandNotFound(command, err)
