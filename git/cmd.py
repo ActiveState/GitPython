@@ -171,7 +171,6 @@ def _safer_popen_windows(command, shell, env=None, **kwargs):
         )
 
 
-
 if os.name == "nt":
     safer_popen = _safer_popen_windows
 else:
