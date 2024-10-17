@@ -21,7 +21,7 @@ import sys
 import threading
 from collections import OrderedDict
 from textwrap import dedent
-import unittest.mock
+import mock
 
 from git.compat import (
     string_types,
@@ -60,6 +60,11 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 __all__ = ('Git',)
+
+
+@contextlib.contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
 
 
 # ==============================================================================
@@ -756,7 +761,7 @@ class Git(LazyMixin):
                 cmd_not_found_exception = FileNotFoundError  # NOQA # exists, flake8 unknown @UndefinedVariable
             else:
                 cmd_not_found_exception = OSError
-            patch_caller_env = contextlib.nullcontext()
+            patch_caller_env = nullcontext()
         # end handle
 
         stdout_sink = (PIPE
@@ -781,7 +786,7 @@ class Git(LazyMixin):
                     close_fds=is_posix,  # unsupported on windows
                     universal_newlines=universal_newlines,
                     creationflags=PROC_CREATIONFLAGS,
-                    **subprocess_kwargs,
+                    **subprocess_kwargs
                 )
         except cmd_not_found_exception as err:
             raise GitCommandNotFound(command, err)
