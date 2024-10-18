@@ -8,3 +8,4 @@ mock; python_version=='2.7'
 pathlib2; python_version=='2.7'
 backports.tempfile
 six
+virtualenv
