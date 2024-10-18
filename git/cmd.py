@@ -4,7 +4,9 @@
 # This module is part of GitPython and is released under
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
 
-from contextlib import contextmanager
+import contextlib
+import re
+
 import io
 import logging
 import os
@@ -19,6 +21,7 @@ import sys
 import threading
 from collections import OrderedDict
 from textwrap import dedent
+import unittest.mock
 
 from git.compat import (
     string_types,
@@ -31,7 +34,7 @@ from git.compat import (
     is_posix,
     is_win,
 )
-from git.exc import CommandError
+from git.exc import CommandError, UnsafeOptionError, UnsafeProtocolError
 from git.util import is_cygwin_git, cygpath, expand_path
 
 from .exc import (
@@ -171,8 +174,48 @@ class Git(LazyMixin):
 
     _excluded_ = ('cat_file_all', 'cat_file_header', '_version_info')
 
+    re_unsafe_protocol = re.compile("(.+)::.+")
+
     def __getstate__(self):
         return slots_to_dict(self, exclude=self._excluded_)
+
+    @classmethod
+    def check_unsafe_protocols(cls, url):
+        """
+        Check for unsafe protocols.
+        Apart from the usual protocols (http, git, ssh),
+        Git allows "remote helpers" that have the form `<transport>::<address>`,
+        one of these helpers (`ext::`) can be used to invoke any arbitrary command.
+        See:
+        - https://git-scm.com/docs/gitremote-helpers
+        - https://git-scm.com/docs/git-remote-ext
+        """
+        match = cls.re_unsafe_protocol.match(url)
+        if match:
+            protocol = match.group(1)
+            raise UnsafeProtocolError(
+                "The `" + protocol + "::` protocol looks suspicious, use `allow_unsafe_protocols=True` to allow it."
+            )
+
+    @classmethod
+    def check_unsafe_options(cls, options, unsafe_options):
+        """
+        Check for unsafe options.
+        Some options that are passed to `git <command>` can be used to execute
+        arbitrary commands, this are blocked by default.
+        """
+        # Options can be of the form `foo` or `--foo bar` `--foo=bar`,
+        # so we need to check if they start with "--foo" or if they are equal to "foo".
+        bare_unsafe_options = [
+            option.lstrip("-")
+            for option in unsafe_options
+        ]
+        for option in options:
+            for unsafe_option, bare_option in zip(unsafe_options, bare_unsafe_options):
+                if option.startswith(unsafe_option) or option == bare_option:
+                    raise UnsafeOptionError(
+                        unsafe_option +" is not allowed, use `allow_unsafe_options=True` to allow it."
+                    )
 
     def __setstate__(self, d):
         dict_to_slots_and__excluded_are_none(self, d, excluded=self._excluded_)
@@ -705,11 +748,15 @@ class Git(LazyMixin):
             cmd_not_found_exception = OSError
             if kill_after_timeout:
                 raise GitCommandError(command, '"kill_after_timeout" feature is not supported on Windows.')
+
+            # Only search PATH, not CWD. This must be in the *caller* environment. The "1" can be any value.
+            patch_caller_env = unittest.mock.patch.dict(os.environ, {"NoDefaultCurrentDirectoryInExePath": "1"})
         else:
             if sys.version_info[0] > 2:
                 cmd_not_found_exception = FileNotFoundError  # NOQA # exists, flake8 unknown @UndefinedVariable
             else:
                 cmd_not_found_exception = OSError
+            patch_caller_env = contextlib.nullcontext()
         # end handle
 
         stdout_sink = (PIPE
@@ -721,19 +768,21 @@ class Git(LazyMixin):
         log.debug("Popen(%s, cwd=%s, universal_newlines=%s, shell=%s, istream=%s)",
                   command, cwd, universal_newlines, shell, istream_ok)
         try:
-            proc = Popen(command,
-                         env=env,
-                         cwd=cwd,
-                         bufsize=-1,
-                         stdin=istream,
-                         stderr=PIPE,
-                         stdout=stdout_sink,
-                         shell=shell is not None and shell or self.USE_SHELL,
-                         close_fds=is_posix,  # unsupported on windows
-                         universal_newlines=universal_newlines,
-                         creationflags=PROC_CREATIONFLAGS,
-                         **subprocess_kwargs
-                         )
+            with patch_caller_env:
+                proc = Popen(
+                    command,
+                    env=env,
+                    cwd=cwd,
+                    bufsize=-1,
+                    stdin=istream,
+                    stderr=PIPE,
+                    stdout=stdout_sink,
+                    shell=shell is not None and shell or self.USE_SHELL,
+                    close_fds=is_posix,  # unsupported on windows
+                    universal_newlines=universal_newlines,
+                    creationflags=PROC_CREATIONFLAGS,
+                    **subprocess_kwargs,
+                )
         except cmd_not_found_exception as err:
             raise GitCommandNotFound(command, err)
 
@@ -862,7 +911,7 @@ class Git(LazyMixin):
                 del self._environment[key]
         return old_env
 
-    @contextmanager
+    @contextlib.contextmanager
     def custom_environment(self, **kwargs):
         """
         A context manager around the above ``update_environment`` method to restore the
@@ -1082,7 +1131,7 @@ class Git(LazyMixin):
         :note: not threadsafe"""
         hexsha, typename, size, stream = self.stream_object_data(ref)
         data = stream.read(size)
-        del(stream)
+        del (stream)
         return (hexsha, typename, size, data)
 
     def stream_object_data(self, ref):
