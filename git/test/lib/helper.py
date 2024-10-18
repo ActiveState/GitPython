@@ -389,12 +389,15 @@ class VirtualEnvironment:
     __slots__ = ("_env_dir",)
 
     def __init__(self, env_dir, with_pip):
+        # On Python2 virtualenv the pip option and symlinks options aren't available
         if os.name == "nt":
             self._env_dir = osp.realpath(env_dir)
             # venv.create(self.env_dir, symlinks=False, with_pip=with_pip)
+            virtualenv.cli_run([self.env_dir])
         else:
             self._env_dir = env_dir
             # venv.create(self.env_dir, symlinks=True, with_pip=with_pip)
+            virtualenv.cli_run([self.env_dir])
 
     @property
     def env_dir(self):
