@@ -73,7 +73,7 @@ def run_commit_hook(name, index, *args):
     env["GIT_INDEX_FILE"] = safe_decode(index.path) if PY3 else safe_encode(index.path)
     env["GIT_EDITOR"] = ":"
     try:
-        cmd = safer_open([hp] + list(args),
+        cmd = safer_popen([hp] + list(args),
                                env=env,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE,
