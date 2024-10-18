@@ -342,7 +342,7 @@ class TestGit(TestBase):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 shell=False,
-                                creationflags=cmd.PROC_CREATIONFLAGS,
+                                # creationflags=cmd.PROC_CREATIONFLAGS,
                                 )
 
         handle_process_output(proc, counter_stdout, counter_stderr, finalize_process)
