@@ -262,6 +262,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_unsafe_options(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
@@ -321,6 +324,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_safe_options(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         options = [
             "--depth=1",
@@ -335,6 +341,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_from_unsafe_options(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         unsafe_options = [
@@ -400,6 +409,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_from_safe_options(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         options = [
             "--depth=1",
@@ -413,6 +425,9 @@ class TestRepo(TestBase):
             assert destination.exists()
 
     def test_clone_from_unsafe_procol(self):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
@@ -425,6 +440,9 @@ class TestRepo(TestBase):
             assert not tmp_file.exists()
 
     def test_clone_from_unsafe_procol_allowed(self):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "pwn"
         urls = [
@@ -1286,6 +1304,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_command_injection(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         unexpected_file = tmp_dir / "pwn"
         assert not unexpected_file.exists()
@@ -1297,6 +1318,9 @@ class TestRepo(TestBase):
 
     @with_rw_repo("HEAD")
     def test_clone_from_command_injection(self, rw_repo):
+        if pathlib is None:  # pythons bellow 3.4 don't have pathlib
+            raise SkipTest("pathlib was introduced in 3.4")
+
         tmp_dir = pathlib.Path(tempfile.mkdtemp())
         temp_repo = Repo.init(tmp_dir / "repo")
         unexpected_file = tmp_dir / "pwn"
