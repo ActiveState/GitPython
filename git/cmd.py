@@ -62,6 +62,11 @@ log.addHandler(logging.NullHandler())
 __all__ = ('Git',)
 
 
+@contextlib.contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
+
+
 # ==============================================================================
 ## @name Utilities
 # ------------------------------------------------------------------------------
