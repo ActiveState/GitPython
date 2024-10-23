@@ -398,6 +398,23 @@ class Remote(LazyMixin, Iterable):
     __slots__ = ("repo", "name", "_config_reader")
     _id_attribute_ = "name"
 
+    unsafe_git_fetch_options = [
+        # This option allows users to execute arbitrary commands.
+        # https://git-scm.com/docs/git-fetch#Documentation/git-fetch.txt---upload-packltupload-packgt
+        "--upload-pack",
+    ]
+    unsafe_git_pull_options = [
+        # This option allows users to execute arbitrary commands.
+        # https://git-scm.com/docs/git-pull#Documentation/git-pull.txt---upload-packltupload-packgt
+        "--upload-pack"
+    ]
+    unsafe_git_push_options = [
+        # This option allows users to execute arbitrary commands.
+        # https://git-scm.com/docs/git-push#Documentation/git-push.txt---execltgit-receive-packgt
+        "--receive-pack",
+        "--exec",
+    ]
+
     def __init__(self, repo, name):
         """Initialize a remote instance
 
@@ -483,7 +500,13 @@ class Remote(LazyMixin, Iterable):
             yield Remote(repo, section[lbound + 1:rbound])
         # END for each configuration section
 
-    def set_url(self, new_url, old_url=None, **kwargs):
+    def set_url(
+        self,
+        new_url,
+        old_url=None,
+        allow_unsafe_protocols=False,
+        **kwargs
+    ):
         """Configure URLs on current remote (cf command git remote set_url)
 
         This command manages URLs on the remote.
@@ -492,15 +515,23 @@ class Remote(LazyMixin, Iterable):
         :param old_url: when set, replaces this URL with new_url for the remote
         :return: self
         """
+        if not allow_unsafe_protocols:
+            Git.check_unsafe_protocols(new_url)
+
         scmd = 'set-url'
         kwargs['insert_kwargs_after'] = scmd
         if old_url:
-            self.repo.git.remote(scmd, self.name, new_url, old_url, **kwargs)
+            self.repo.git.remote(scmd, "--", self.name, new_url, old_url, **kwargs)
         else:
-            self.repo.git.remote(scmd, self.name, new_url, **kwargs)
+            self.repo.git.remote(scmd, "--", self.name, new_url, **kwargs)
         return self
 
-    def add_url(self, url, **kwargs):
+    def add_url(
+            self,
+            url,
+            allow_unsafe_protocols=False,
+            **kwargs
+    ):
         """Adds a new url on current remote (special case of git remote set_url)
 
         This command adds new URLs to a given remote, making it possible to have
@@ -509,7 +540,7 @@ class Remote(LazyMixin, Iterable):
         :param url: string being the URL to add as an extra remote URL
         :return: self
         """
-        return self.set_url(url, add=True)
+        return self.set_url(url, add=True, allow_unsafe_protocols=allow_unsafe_protocols)
 
     def delete_url(self, url, **kwargs):
         """Deletes a new url on current remote (special case of git remote set_url)
@@ -598,7 +629,7 @@ class Remote(LazyMixin, Iterable):
         return out_refs
 
     @classmethod
-    def create(cls, repo, name, url, **kwargs):
+    def create(cls, repo, name, url, allow_unsafe_protocols=False, **kwargs):
         """Create a new remote to the given repository
         :param repo: Repository instance that is to receive the new remote
         :param name: Desired name of the remote
@@ -608,7 +639,10 @@ class Remote(LazyMixin, Iterable):
         :raise GitCommandError: in case an origin with that name already exists"""
         scmd = 'add'
         kwargs['insert_kwargs_after'] = scmd
-        repo.git.remote(scmd, name, Git.polish_url(url), **kwargs)
+        url = Git.polish_url(url)
+        if not allow_unsafe_protocols:
+            Git.check_unsafe_protocols(url)
+        repo.git.remote(scmd, "--", name, url, **kwargs)
         return cls(repo, name)
 
     # add is an alias
@@ -684,7 +718,7 @@ class Remote(LazyMixin, Iterable):
 
         # read head information
         with open(osp.join(self.repo.common_dir, 'FETCH_HEAD'), 'rb') as fp:
-            fetch_head_info = [l.decode(defenc) for l in fp.readlines()]
+            fetch_head_info = [i.decode(defenc) for i in fp.readlines()]
 
         l_fil = len(fetch_info_lines)
         l_fhi = len(fetch_head_info)
@@ -749,7 +783,14 @@ class Remote(LazyMixin, Iterable):
         finally:
             config.release()
 
-    def fetch(self, refspec=None, progress=None, **kwargs):
+    def fetch(
+            self,
+            refspec=None,
+            progress=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         """Fetch the latest changes for this remote
 
         :param refspec:
@@ -785,14 +826,29 @@ class Remote(LazyMixin, Iterable):
         else:
             args = [refspec]
 
-        proc = self.repo.git.fetch(self, *args, as_process=True, with_stdout=False,
+        if not allow_unsafe_protocols:
+            for ref in args:
+                if ref:
+                    Git.check_unsafe_protocols(ref)
+
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_fetch_options)
+
+        proc = self.repo.git.fetch("--", self, *args, as_process=True, with_stdout=False,
                                    universal_newlines=True, v=True, **kwargs)
         res = self._get_fetch_info_from_stderr(proc, progress)
         if hasattr(self.repo.odb, 'update_cache'):
             self.repo.odb.update_cache()
         return res
 
-    def pull(self, refspec=None, progress=None, **kwargs):
+    def pull(
+            self,
+            refspec=None,
+            progress=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         """Pull changes from the given branch, being the same as a fetch followed
         by a merge of branch with your local branch.
 
@@ -804,14 +860,29 @@ class Remote(LazyMixin, Iterable):
             # No argument refspec, then ensure the repo's config has a fetch refspec.
             self._assert_refspec()
         kwargs = add_progress(kwargs, self.repo.git, progress)
-        proc = self.repo.git.pull(self, refspec, with_stdout=False, as_process=True,
+
+        refspec = Git._Git__unpack_args(refspec or [])
+        if not allow_unsafe_protocols:
+            for ref in refspec:
+                Git.check_unsafe_protocols(ref)
+
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_pull_options)
+
+        proc = self.repo.git.pull("--", self, refspec, with_stdout=False, as_process=True,
                                   universal_newlines=True, v=True, **kwargs)
         res = self._get_fetch_info_from_stderr(proc, progress)
         if hasattr(self.repo.odb, 'update_cache'):
             self.repo.odb.update_cache()
         return res
 
-    def push(self, refspec=None, progress=None, **kwargs):
+    def push(
+            self,
+            refspec=None,
+            progress=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs):
         """Push changes from source branch in refspec to target branch in refspec.
 
         :param refspec: see 'fetch' method
@@ -839,7 +910,16 @@ class Remote(LazyMixin, Iterable):
             If the operation fails completely, the length of the returned IterableList will
             be null."""
         kwargs = add_progress(kwargs, self.repo.git, progress)
-        proc = self.repo.git.push(self, refspec, porcelain=True, as_process=True,
+
+        refspec = Git._Git__unpack_args(refspec or [])
+        if not allow_unsafe_protocols:
+            for ref in refspec:
+                Git.check_unsafe_protocols(ref)
+
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=self.unsafe_git_push_options)
+
+        proc = self.repo.git.push("--", self, refspec, porcelain=True, as_process=True,
                                   universal_newlines=True, **kwargs)
         return self._get_push_info(proc, progress)
 
@@ -853,7 +933,7 @@ class Remote(LazyMixin, Iterable):
 
     def _clear_cache(self):
         try:
-            del(self._config_reader)
+            del (self._config_reader)
         except AttributeError:
             pass
         # END handle exception

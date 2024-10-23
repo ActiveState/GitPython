@@ -13,7 +13,7 @@ from stat import (
 )
 import subprocess
 
-from git.cmd import PROC_CREATIONFLAGS, handle_process_output
+from git.cmd import handle_process_output, safer_popen
 from git.compat import (
     PY3,
     defenc,
@@ -23,14 +23,11 @@ from git.compat import (
     safe_encode,
     safe_decode,
 )
-from git.exc import (
-    UnmergedEntriesError,
-    HookExecutionError
-)
+from git.exc import UnmergedEntriesError, HookExecutionError
 from git.objects.fun import (
     tree_to_stream,
     traverse_tree_recursive,
-    traverse_trees_recursive
+    traverse_trees_recursive,
 )
 from git.util import IndexFileSHA1Writer, finalize_process
 from gitdb.base import IStream
@@ -38,28 +35,28 @@ from gitdb.typ import str_tree_type
 
 import os.path as osp
 
-from .typ import (
-    BaseIndexEntry,
-    IndexEntry,
-    CE_NAMEMASK,
-    CE_STAGESHIFT
-)
-from .util import (
-    pack,
-    unpack
-)
+from .typ import BaseIndexEntry, IndexEntry, CE_NAMEMASK, CE_STAGESHIFT
+from .util import pack, unpack
 
 
-S_IFGITLINK = S_IFLNK | S_IFDIR     # a submodule
+S_IFGITLINK = S_IFLNK | S_IFDIR  # a submodule
 CE_NAMEMASK_INV = ~CE_NAMEMASK
 
-__all__ = ('write_cache', 'read_cache', 'write_tree_from_cache', 'entry_key',
-           'stat_mode_to_index_mode', 'S_IFGITLINK', 'run_commit_hook', 'hook_path')
+__all__ = (
+    "write_cache",
+    "read_cache",
+    "write_tree_from_cache",
+    "entry_key",
+    "stat_mode_to_index_mode",
+    "S_IFGITLINK",
+    "run_commit_hook",
+    "hook_path",
+)
 
 
 def hook_path(name, git_dir):
     """:return: path to the given named hook in the given git repository directory"""
-    return osp.join(git_dir, 'hooks', name)
+    return osp.join(git_dir, "hooks", name)
 
 
 def run_commit_hook(name, index, *args):
@@ -67,30 +64,29 @@ def run_commit_hook(name, index, *args):
     :param name: name of hook, like 'pre-commit'
     :param index: IndexFile instance
     :param args: arguments passed to hook file
-    :raises HookExecutionError: """
+    :raises HookExecutionError:"""
     hp = hook_path(name, index.repo.git_dir)
     if not os.access(hp, os.X_OK):
         return
 
     env = os.environ.copy()
-    env['GIT_INDEX_FILE'] = safe_decode(index.path) if PY3 else safe_encode(index.path)
-    env['GIT_EDITOR'] = ':'
+    env["GIT_INDEX_FILE"] = safe_decode(index.path) if PY3 else safe_encode(index.path)
+    env["GIT_EDITOR"] = ":"
     try:
-        cmd = subprocess.Popen([hp] + list(args),
+        cmd = safer_popen([hp] + list(args),
                                env=env,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE,
                                cwd=index.repo.working_dir,
-                               close_fds=is_posix,
-                               creationflags=PROC_CREATIONFLAGS,)
+                               close_fds=is_posix)
     except Exception as ex:
         raise HookExecutionError(hp, ex)
     else:
         stdout = []
         stderr = []
         handle_process_output(cmd, stdout.append, stderr.append, finalize_process)
-        stdout = ''.join(stdout)
-        stderr = ''.join(stderr)
+        stdout = "".join(stdout)
+        stderr = "".join(stderr)
         if cmd.returncode != 0:
             stdout = force_text(stdout, defenc)
             stderr = force_text(stderr, defenc)
@@ -101,11 +97,11 @@ def run_commit_hook(name, index, *args):
 def stat_mode_to_index_mode(mode):
     """Convert the given mode from a stat call to the corresponding index mode
     and return it"""
-    if S_ISLNK(mode):   # symlinks
+    if S_ISLNK(mode):  # symlinks
         return S_IFLNK
-    if S_ISDIR(mode) or S_IFMT(mode) == S_IFGITLINK:    # submodules
+    if S_ISDIR(mode) or S_IFMT(mode) == S_IFGITLINK:  # submodules
         return S_IFGITLINK
-    return S_IFREG | 0o644 | (mode & 0o111)       # blobs with or without executable bit
+    return S_IFREG | 0o644 | (mode & 0o111)  # blobs with or without executable bit
 
 
 def write_cache(entries, stream, extension_data=None, ShaStreamCls=IndexFileSHA1Writer):
@@ -134,17 +130,28 @@ def write_cache(entries, stream, extension_data=None, ShaStreamCls=IndexFileSHA1
     # body
     for entry in entries:
         beginoffset = tell()
-        write(entry[4])         # ctime
-        write(entry[5])         # mtime
+        write(entry[4])  # ctime
+        write(entry[5])  # mtime
         path = entry[3]
         path = force_bytes(path, encoding=defenc)
-        plen = len(path) & CE_NAMEMASK      # path length
+        plen = len(path) & CE_NAMEMASK  # path length
         assert plen == len(path), "Path %s too long to fit into index" % entry[3]
-        flags = plen | (entry[2] & CE_NAMEMASK_INV)     # clear possible previous values
-        write(pack(">LLLLLL20sH", entry[6], entry[7], entry[0],
-                   entry[8], entry[9], entry[10], entry[1], flags))
+        flags = plen | (entry[2] & CE_NAMEMASK_INV)  # clear possible previous values
+        write(
+            pack(
+                ">LLLLLL20sH",
+                entry[6],
+                entry[7],
+                entry[0],
+                entry[8],
+                entry[9],
+                entry[10],
+                entry[1],
+                flags,
+            )
+        )
         write(path)
-        real_size = ((tell() - beginoffset + 8) & ~7)
+        real_size = (tell() - beginoffset + 8) & ~7
         write(b"\0" * ((beginoffset + real_size) - tell()))
     # END for each entry
 
@@ -195,14 +202,17 @@ def read_cache(stream):
         beginoffset = tell()
         ctime = unpack(">8s", read(8))[0]
         mtime = unpack(">8s", read(8))[0]
-        (dev, ino, mode, uid, gid, size, sha, flags) = \
-            unpack(">LLLLLL20sH", read(20 + 4 * 6 + 2))
+        (dev, ino, mode, uid, gid, size, sha, flags) = unpack(
+            ">LLLLLL20sH", read(20 + 4 * 6 + 2)
+        )
         path_size = flags & CE_NAMEMASK
         path = read(path_size).decode(defenc)
 
-        real_size = ((tell() - beginoffset + 8) & ~7)
+        real_size = (tell() - beginoffset + 8) & ~7
         read((beginoffset + real_size) - tell())
-        entry = IndexEntry((mode, sha, flags, path, ctime, mtime, dev, ino, uid, gid, size))
+        entry = IndexEntry(
+            (mode, sha, flags, path, ctime, mtime, dev, ino, uid, gid, size)
+        )
         # entry_key would be the method to use, but we safe the effort
         entries[(path, entry.stage)] = entry
         count += 1
@@ -215,8 +225,10 @@ def read_cache(stream):
     # 4 bytes length of chunk
     # repeated 0 - N times
     extension_data = stream.read(~0)
-    assert len(extension_data) > 19, "Index Footer was not at least a sha on content as it was only %i bytes in size"\
-                                     % len(extension_data)
+    assert len(extension_data) > 19, (
+        "Index Footer was not at least a sha on content as it was only %i bytes in size"
+        % len(extension_data)
+    )
 
     content_sha = extension_data[-20:]
 
@@ -246,7 +258,7 @@ def write_tree_from_cache(entries, odb, sl, si=0):
             raise UnmergedEntriesError(entry)
         # END abort on unmerged
         ci += 1
-        rbound = entry.path.find('/', si)
+        rbound = entry.path.find("/", si)
         if rbound == -1:
             # its not a tree
             tree_items_append((entry.binsha, entry.mode, entry.path[si:]))
@@ -256,7 +268,7 @@ def write_tree_from_cache(entries, odb, sl, si=0):
             xi = ci
             while xi < end:
                 oentry = entries[xi]
-                orbound = oentry.path.find('/', si)
+                orbound = oentry.path.find("/", si)
                 if orbound == -1 or oentry.path[si:orbound] != base:
                     break
                 # END abort on base mismatch
@@ -265,7 +277,9 @@ def write_tree_from_cache(entries, odb, sl, si=0):
 
             # enter recursion
             # ci - 1 as we want to count our current item as well
-            sha, tree_entry_list = write_tree_from_cache(entries, odb, slice(ci - 1, xi), rbound + 1)  # @UnusedVariable
+            sha, tree_entry_list = write_tree_from_cache(
+                entries, odb, slice(ci - 1, xi), rbound + 1
+            )  # @UnusedVariable
             tree_items_append((sha, S_IFDIR, base))
 
             # skip ahead
@@ -283,7 +297,9 @@ def write_tree_from_cache(entries, odb, sl, si=0):
 
 
 def _tree_entry_to_baseindexentry(tree_entry, stage):
-    return BaseIndexEntry((tree_entry[1], tree_entry[0], stage << CE_STAGESHIFT, tree_entry[2]))
+    return BaseIndexEntry(
+        (tree_entry[1], tree_entry[0], stage << CE_STAGESHIFT, tree_entry[2])
+    )
 
 
 def aggressive_tree_merge(odb, tree_shas):
@@ -301,7 +317,7 @@ def aggressive_tree_merge(odb, tree_shas):
     # one and two way is the same for us, as we don't have to handle an existing
     # index, instrea
     if len(tree_shas) in (1, 2):
-        for entry in traverse_tree_recursive(odb, tree_shas[-1], ''):
+        for entry in traverse_tree_recursive(odb, tree_shas[-1], ""):
             out_append(_tree_entry_to_baseindexentry(entry, 0))
         # END for each entry
         return out
@@ -311,7 +327,7 @@ def aggressive_tree_merge(odb, tree_shas):
         raise ValueError("Cannot handle %i trees at once" % len(tree_shas))
 
     # three trees
-    for base, ours, theirs in traverse_trees_recursive(odb, tree_shas, ''):
+    for base, ours, theirs in traverse_trees_recursive(odb, tree_shas, ""):
         if base is not None:
             # base version exists
             if ours is not None:
@@ -320,8 +336,15 @@ def aggressive_tree_merge(odb, tree_shas):
                     # it exists in all branches, if it was changed in both
                     # its a conflict, otherwise we take the changed version
                     # This should be the most common branch, so it comes first
-                    if(base[0] != ours[0] and base[0] != theirs[0] and ours[0] != theirs[0]) or \
-                            (base[1] != ours[1] and base[1] != theirs[1] and ours[1] != theirs[1]):
+                    if (
+                        base[0] != ours[0]
+                        and base[0] != theirs[0]
+                        and ours[0] != theirs[0]
+                    ) or (
+                        base[1] != ours[1]
+                        and base[1] != theirs[1]
+                        and ours[1] != theirs[1]
+                    ):
                         # changed by both
                         out_append(_tree_entry_to_baseindexentry(base, 1))
                         out_append(_tree_entry_to_baseindexentry(ours, 2))

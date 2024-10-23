@@ -1,6 +1,11 @@
-ddt>=1.1.1
+ddt>=1.1.1; python_version>'3.0'
+ddt>=1.1.1,<=1.6.0; python_version =='2.7'
 coverage
 flake8
+mock; python_version=='2.7'
 nose
 tox
-mock; python_version=='2.7'
+pathlib2; python_version=='2.7'
+backports.tempfile
+six
+virtualenv
