@@ -13,7 +13,7 @@ from stat import (
 )
 import subprocess
 
-from git.cmd import PROC_CREATIONFLAGS, handle_process_output
+from git.cmd import handle_process_output, safer_popen
 from git.compat import (
     PY3,
     defenc,
@@ -73,15 +73,12 @@ def run_commit_hook(name, index, *args):
     env["GIT_INDEX_FILE"] = safe_decode(index.path) if PY3 else safe_encode(index.path)
     env["GIT_EDITOR"] = ":"
     try:
-        cmd = subprocess.Popen(
-            [hp] + list(args),
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=index.repo.working_dir,
-            close_fds=is_posix,
-            creationflags=PROC_CREATIONFLAGS,
-        )
+        cmd = safer_open([hp] + list(args),
+                               env=env,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               cwd=index.repo.working_dir,
+                               close_fds=is_posix)
     except Exception as ex:
         raise HookExecutionError(hp, ex)
     else:
