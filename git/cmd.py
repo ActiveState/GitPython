@@ -21,7 +21,7 @@ import sys
 import threading
 from collections import OrderedDict
 from textwrap import dedent
-import unittest.mock
+import mock
 
 from git.compat import (
     string_types,
