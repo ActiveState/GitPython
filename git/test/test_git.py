@@ -4,12 +4,16 @@
 #
 # This module is part of GitPython and is released under
 # the BSD License: http://www.opensource.org/licenses/bsd-license.php
+from __future__ import print_function
+
 import contextlib
 import os
 import shutil
 import subprocess
 import sys
-from tempfile import TemporaryDirectory, TemporaryFile
+from tempfile import TemporaryFile
+from backports.tempfile import TemporaryDirectory
+import six
 
 from git import (
     Git,
@@ -122,12 +126,13 @@ class TestGit(TestBase):
             else:
                 # Create a shell script that doesn't do anything.
                 impostor_path = os.path.join(tmpdir, "git")
-                with open(impostor_path, mode="w", encoding="utf-8") as file:
+                with open(impostor_path, mode="w") as file:
                     print("#!/bin/sh", file=file)
                 os.chmod(impostor_path, 0o755)
 
             with _chdir(tmpdir):
-                self.assertRegex(self.git.execute(["git", "version"]), r"^git version\b")
+                # six.assertRegex(self.git.execute(["git", "version"]).encode("UTF-8"), r"^git version\b")
+                self.assertRegexpMatches(self.git.execute(["git", "version"]), r"^git version\b")
 
     def test_it_accepts_stdin(self):
         filename = fixture_path("cat_file_blob")
