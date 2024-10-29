@@ -37,10 +37,9 @@ import gc
 import gitdb
 
 try:
-    import pathlib
+    from pathlib import Path
 except ImportError:
-    pathlib = None
-
+    from pathlib2 import Path
 
 log = logging.getLogger(__name__)
 
@@ -78,6 +77,18 @@ class Repo(object):
     re_hexsha_shortened = re.compile('^[0-9A-Fa-f]{4,40}$')
     re_author_committer_start = re.compile(r'^(author|committer)')
     re_tab_full_line = re.compile(r'^\t(.*)$')
+
+    unsafe_git_clone_options = [
+        # This option allows users to execute arbitrary commands.
+        # https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---upload-packltupload-packgt
+        "--upload-pack",
+        "-u",
+        # Users can override configuration variables
+        # like `protocol.allow` or `core.gitProxy` to execute arbitrary commands.
+        # https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---configltkeygtltvaluegt
+        "--config",
+        "-c",
+    ]
 
     # invariants
     # represents the configuration level of a configuration file
@@ -931,7 +942,18 @@ class Repo(object):
         return cls(path, odbt=odbt)
 
     @classmethod
-    def _clone(cls, git, url, path, odb_default_type, progress, multi_options=None, **kwargs):
+    def _clone(
+            cls,
+            git,
+            url,
+            path,
+            odb_default_type,
+            progress,
+            multi_options=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         if progress is not None:
             progress = to_progress_instance(progress)
 
@@ -956,7 +978,15 @@ class Repo(object):
         multi = None
         if multi_options:
             multi = ' '.join(multi_options).split(' ')
-        proc = git.clone(multi, Git.polish_url(url), clone_path, with_extended_output=True, as_process=True,
+
+        if not allow_unsafe_protocols:
+            Git.check_unsafe_protocols(str(url))
+        if not allow_unsafe_options:
+            Git.check_unsafe_options(options=list(kwargs.keys()), unsafe_options=cls.unsafe_git_clone_options)
+        if not allow_unsafe_options and multi_options:
+            Git.check_unsafe_options(options=multi_options, unsafe_options=cls.unsafe_git_clone_options)
+
+        proc = git.clone(multi, "--", Git.polish_url(url), clone_path, with_extended_output=True, as_process=True,
                          v=True, universal_newlines=True, **add_progress(kwargs, git, progress))
         if progress:
             handle_process_output(proc, None, progress.new_message_handler(), finalize_process, decode_streams=False)
@@ -986,7 +1016,15 @@ class Repo(object):
         # END handle remote repo
         return repo
 
-    def clone(self, path, progress=None, multi_options=None, **kwargs):
+    def clone(
+            self,
+            path,
+            progress=None,
+            multi_options=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         """Create a clone from this repository.
 
         :param path: is the full path of the new repo (traditionally ends with ./<name>.git).
@@ -995,16 +1033,37 @@ class Repo(object):
             option per list item which is passed exactly as specified to clone.
             For example ['--config core.filemode=false', '--config core.ignorecase',
                          '--recurse-submodule=repo1_path', '--recurse-submodule=repo2_path']
+        :param unsafe_protocols: Allow unsafe protocols to be used, like ext
         :param kwargs:
             * odbt = ObjectDatabase Type, allowing to determine the object database
               implementation used by the returned Repo instance
             * All remaining keyword arguments are given to the git-clone command
 
         :return: ``git.Repo`` (the newly cloned repo)"""
-        return self._clone(self.git, self.common_dir, path, type(self.odb), progress, multi_options, **kwargs)
+        return self._clone(
+            self.git,
+            self.common_dir,
+            path,
+            type(self.odb),
+            progress,
+            multi_options,
+            allow_unsafe_protocols=allow_unsafe_protocols,
+            allow_unsafe_options=allow_unsafe_options,
+            **kwargs
+        )
 
     @classmethod
-    def clone_from(cls, url, to_path, progress=None, env=None, multi_options=None, **kwargs):
+    def clone_from(
+            cls,
+            url,
+            to_path,
+            progress=None,
+            env=None,
+            multi_options=None,
+            allow_unsafe_protocols=False,
+            allow_unsafe_options=False,
+            **kwargs
+    ):
         """Create a clone from the given URL
 
         :param url: valid git url, see http://www.kernel.org/pub/software/scm/git/docs/git-clone.html#URLS
@@ -1013,11 +1072,22 @@ class Repo(object):
         :param env: Optional dictionary containing the desired environment variables.
         :param mutli_options: See ``clone`` method
         :param kwargs: see the ``clone`` method
+        :param unsafe_protocols: Allow unsafe protocols to be used, like ext
         :return: Repo instance pointing to the cloned directory"""
         git = Git(os.getcwd())
         if env is not None:
             git.update_environment(**env)
-        return cls._clone(git, url, to_path, GitCmdObjectDB, progress, multi_options, **kwargs)
+        return cls._clone(
+            git,
+            url,
+            to_path,
+            GitCmdObjectDB,
+            progress,
+            multi_options,
+            allow_unsafe_protocols=allow_unsafe_protocols,
+            allow_unsafe_options=allow_unsafe_options,
+            **kwargs
+        )
 
     def archive(self, ostream, treeish=None, prefix=None, **kwargs):
         """Archive the tree at the given revision.
@@ -1044,7 +1114,7 @@ class Repo(object):
             path = [path]
         # end assure paths is list
 
-        self.git.archive(treeish, *path, **kwargs)
+        self.git.archive("--", treeish, *path, **kwargs)
         return self
 
     def has_separate_working_tree(self):

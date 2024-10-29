@@ -106,7 +106,7 @@ class TestObjDBPerformance(TestBigRepoR):
             gitsha = proc.stdout.read().strip()
             proc.wait()
             gelapsed_add = time() - st
-            del(data)
+            del (data)
             assert gitsha == bin_to_hex(binsha)     # we do it the same way, right ?
 
             #  as its the same sha, we reuse our path

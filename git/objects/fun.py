@@ -1,27 +1,25 @@
 """Module with functions which are supposed to be as fast as possible"""
-from stat import S_ISDIR
-from git.compat import (
-    byte_ord,
-    safe_decode,
-    defenc,
-    xrange,
-    text_type,
-    bchr
-)
 
-__all__ = ('tree_to_stream', 'tree_entries_from_data', 'traverse_trees_recursive',
-           'traverse_tree_recursive')
+from stat import S_ISDIR
+from git.compat import byte_ord, safe_decode, defenc, xrange, text_type, bchr
+
+__all__ = (
+    "tree_to_stream",
+    "tree_entries_from_data",
+    "traverse_trees_recursive",
+    "traverse_tree_recursive",
+)
 
 
 def tree_to_stream(entries, write):
     """Write the give list of entries into a stream using its write method
     :param entries: **sorted** list of tuples with (binsha, mode, name)
     :param write: write method which takes a data string"""
-    ord_zero = ord('0')
-    bit_mask = 7            # 3 bits set
+    ord_zero = ord("0")
+    bit_mask = 7  # 3 bits set
 
     for binsha, mode, name in entries:
-        mode_str = b''
+        mode_str = b""
         for i in xrange(6):
             mode_str = bchr(((mode >> (i * 3)) & bit_mask) + ord_zero) + mode_str
         # END for each 8 octal value
@@ -38,7 +36,7 @@ def tree_to_stream(entries, write):
         # takes the input literally, which appears to be utf8 on linux.
         if isinstance(name, text_type):
             name = name.encode(defenc)
-        write(b''.join((mode_str, b' ', name, b'\0', binsha)))
+        write(b"".join((mode_str, b" ", name, b"\0", binsha)))
     # END for each item
 
 
@@ -46,8 +44,8 @@ def tree_entries_from_data(data):
     """Reads the binary representation of a tree and returns tuples of Tree items
     :param data: data block with tree data (as bytes)
     :return: list(tuple(binsha, mode, tree_relative_path), ...)"""
-    ord_zero = ord('0')
-    space_ord = ord(' ')
+    ord_zero = ord("0")
+    space_ord = ord(" ")
     len_data = len(data)
     i = 0
     out = []
@@ -81,7 +79,7 @@ def tree_entries_from_data(data):
 
         # byte is NULL, get next 20
         i += 1
-        sha = data[i:i + 20]
+        sha = data[i: i + 20]
         i = i + 20
         out.append((sha, mode, name))
     # END for each byte in data stream
@@ -156,8 +154,8 @@ def traverse_trees_recursive(odb, tree_shas, path_prefix):
             # END skip already done items
             entries = [None for _ in range(nt)]
             entries[ti] = item
-            sha, mode, name = item                          # its faster to unpack @UnusedVariable
-            is_dir = S_ISDIR(mode)                          # type mode bits
+            sha, mode, name = item  # its faster to unpack @UnusedVariable
+            is_dir = S_ISDIR(mode)  # type mode bits
 
             # find this item in all other tree data items
             # wrap around, but stop one before our current index, hence
@@ -169,8 +167,13 @@ def traverse_trees_recursive(odb, tree_shas, path_prefix):
 
             # if we are a directory, enter recursion
             if is_dir:
-                out.extend(traverse_trees_recursive(
-                    odb, [((ei and ei[0]) or None) for ei in entries], path_prefix + name + '/'))
+                out.extend(
+                    traverse_trees_recursive(
+                        odb,
+                        [((ei and ei[0]) or None) for ei in entries],
+                        path_prefix + name + "/",
+                    )
+                )
             else:
                 out_append(tuple(_to_full_path(e, path_prefix) for e in entries))
             # END handle recursion
@@ -180,7 +183,7 @@ def traverse_trees_recursive(odb, tree_shas, path_prefix):
         # END for each item
 
         # we are done with one tree, set all its data empty
-        del(tree_data[:])
+        del tree_data[:]
     # END for each tree_data chunk
     return out
 
@@ -199,7 +202,7 @@ def traverse_tree_recursive(odb, tree_sha, path_prefix):
     # unpacking/packing is faster than accessing individual items
     for sha, mode, name in data:
         if S_ISDIR(mode):
-            entries.extend(traverse_tree_recursive(odb, sha, path_prefix + name + '/'))
+            entries.extend(traverse_tree_recursive(odb, sha, path_prefix + name + "/"))
         else:
             entries.append((sha, mode, path_prefix + name))
     # END for each item
