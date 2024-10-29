@@ -2,6 +2,22 @@
 Changelog
 =========
 
+2.1.15.1 - CVE Fixes
+=================
+
+Fix for CVE-2022-24439
+Fix for CVE-2023-40267
+Fix for CVE-2023-40590
+
+Update requirements.txt to include "mock".
+
+Update test-requirements.txt to:
+    limit ddt to <= 1.6.0 on Python2.7
+    add pathlib2 on Python2 
+    add backports.tempfile 
+    add six 
+    add virtualenv
+
 2.1.15 - Bugfixes
 =================
 
