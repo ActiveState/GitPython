@@ -35,7 +35,7 @@ from git.compat import (
     is_win,
 )
 from git.exc import CommandError, UnsafeOptionError, UnsafeProtocolError
-from git.util import is_cygwin_git, cygpath, expand_path
+from git.util import is_cygwin_git, cygpath, expand_path, patch_env
 
 from .exc import (
     GitCommandError,
@@ -132,7 +132,7 @@ def handle_process_output(process, stdout_handler, stderr_handler,
         return finalizer(process)
 
 
-def _safer_popen_windows(command, shell, env=None, **kwargs):
+def _safer_popen_windows(command, shell=False, env=None, **kwargs):
     """Call :class:`subprocess.Popen` on Windows but don't include a CWD in the search.
     This avoids an untrusted search path condition where a file like ``git.exe`` in a
     malicious repository would be run when GitPython operates on the repository. The
@@ -154,7 +154,6 @@ def _safer_popen_windows(command, shell, env=None, **kwargs):
     # https://docs.python.org/3/library/subprocess.html#subprocess.Popen.send_signal
     # https://docs.python.org/3/library/subprocess.html#subprocess.CREATE_NEW_PROCESS_GROUP
     creationflags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
-
     # When using a shell, the shell is the direct subprocess, so the variable must be
     # set in its environment, to affect its search behavior. (The "1" can be any value.)
     if shell:
@@ -162,7 +161,6 @@ def _safer_popen_windows(command, shell, env=None, **kwargs):
         safer_env["NoDefaultCurrentDirectoryInExePath"] = "1"
     else:
         safer_env = env
-
     # When not using a shell, the current process does the search in a CreateProcessW
     # API call, so the variable must be set in our environment. With a shell, this is
     # unnecessary, in versions where https://github.com/python/cpython/issues/101283 is
@@ -177,6 +175,12 @@ def _safer_popen_windows(command, shell, env=None, **kwargs):
             creationflags=creationflags,
             **kwargs
         )
+
+
+if os.name == "nt":
+    safer_popen = _safer_popen_windows
+else:
+    safer_popen = Popen
 
 
 if os.name == "nt":
@@ -801,15 +805,11 @@ class Git(LazyMixin):
             cmd_not_found_exception = OSError
             if kill_after_timeout:
                 raise GitCommandError(command, '"kill_after_timeout" feature is not supported on Windows.')
-
-            # Only search PATH, not CWD. This must be in the *caller* environment. The "1" can be any value.
-            patch_caller_env = unittest.mock.patch.dict(os.environ, {"NoDefaultCurrentDirectoryInExePath": "1"})
         else:
             if sys.version_info[0] > 2:
                 cmd_not_found_exception = FileNotFoundError  # NOQA # exists, flake8 unknown @UndefinedVariable
             else:
                 cmd_not_found_exception = OSError
-            patch_caller_env = nullcontext()
         # end handle
 
         stdout_sink = (PIPE
@@ -829,7 +829,7 @@ class Git(LazyMixin):
                 stdin=istream,
                 stderr=PIPE,
                 stdout=stdout_sink,
-                shell=shell is not None and shell or self.USE_SHELL,
+                shell=shell,
                 universal_newlines=universal_newlines,
                 **subprocess_kwargs
             )

@@ -84,6 +84,20 @@ def cwd(new_dir):
         os.chdir(old_dir)
 
 
+@contextlib.contextmanager
+def patch_env(name, value):
+    """Context manager to temporarily patch an environment variable."""
+    old_value = os.getenv(name)
+    os.environ[name] = value
+    try:
+        yield
+    finally:
+        if old_value is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old_value
+
+
 def rmtree(path):
     """Remove the given recursively.
 
@@ -201,7 +215,6 @@ def py_where(program, path=None):
         call without ``shell=True``, because shell and non-shell executable search on
         Windows differ considerably.
     """
-
 
     # From: http://stackoverflow.com/a/377028/548792
     winprog_exts = _get_exe_extensions()
