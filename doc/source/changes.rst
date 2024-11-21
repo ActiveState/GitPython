@@ -6,8 +6,12 @@ Changelog
 =================
 
 Fix for CVE-2022-24439
+
 Fix for CVE-2023-40267
+
 Fix for CVE-2023-40590
+
+Fix for CVE-2024-22190
 
 Update requirements.txt to include "mock".
 
